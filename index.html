@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Tutor | SFA Pro</title>
+    <title>Recall AI Agent | SFA Pro</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono&display=swap"
@@ -324,7 +324,7 @@
 
     <header>
         <div>
-            <h1>🎓 AI Study Tutor <span class="tagline">SFA Pro</span></h1>
+            <h1>🎓 Recall AI Agent <span class="tagline">SFA Pro</span></h1>
         </div>
         <div style="display: flex; gap: 0.5rem;">
             <button onclick="resetSession()"
@@ -405,7 +405,7 @@
                 addMessage('assistant', data.content);
                 checkQuizTrigger(data.content);
             } catch (err) {
-                addMessage('assistant', '⚠️ **Connection Error:** Could not sync with backend. Is `api.py` still running?');
+                addMessage('assistant', '⚠️ **Connection Error:** Could not sync with backend. Is `main.py` still running?');
             } finally {
                 setLoading(false);
             }

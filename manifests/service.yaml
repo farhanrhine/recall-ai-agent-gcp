@@ -7,5 +7,5 @@ spec:
     app: llmops-app
   ports:
     - port: 80
-      targetPort: 8080  # port for AI Tutor SFA Pro
+      targetPort: 8080  # port for Recall AI Agent SFA Pro
   type: NodePort

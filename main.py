@@ -58,7 +58,7 @@ async def get_index():
 
 def start():
     """Entry point for the application."""
-    print("🚀 Starting AI Tutor SFA Pro on http://0.0.0.0:8080")
+    print("🚀 Starting Recall AI Agent SFA Pro on http://0.0.0.0:8080")
     uvicorn.run(app, host="0.0.0.0", port=8080)
 
 if __name__ == "__main__":
