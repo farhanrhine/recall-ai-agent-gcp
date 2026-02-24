@@ -1,59 +1,263 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Tutor - SFA</title>
+    <title>AI Tutor | SFA</title>
+    <!-- Use a clean font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono&display=swap"
+        rel="stylesheet">
+    <!-- Markdown support -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        /* Minimalist, Brutalist CSS */
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 2rem; background: #fff; }
-        h1, h2 { border-bottom: 2px solid #000; padding-bottom: 0.5rem; }
-        .container { display: flex; gap: 2rem; }
-        #chat-section { flex: 1.5; }
-        #quiz-section { flex: 1; background: #f9f9f9; padding: 1rem; border: 1px solid #ddd; height: fit-content; position: sticky; top: 1rem; }
-        
-        #chat-window { border: 2px solid #000; height: 500px; overflow-y: auto; padding: 1rem; margin-bottom: 1rem; background: #fafafa; }
-        .message { margin-bottom: 1rem; padding: 0.5rem 1rem; border-radius: 8px; max-width: 85%; }
-        .user { background: #e3f2fd; margin-left: auto; border: 1px solid #2196f3; }
-        .assistant { background: #f5f5f5; margin-right: auto; border: 1px solid #9e9e9e; white-space: pre-wrap; }
-        
-        .controls { display: flex; gap: 0.5rem; }
-        input[type="text"] { flex: 1; padding: 0.8rem; border: 2px solid #000; outline: none; }
-        button { padding: 0.8rem 1.5rem; background: #000; color: #fff; border: none; cursor: pointer; font-weight: bold; }
-        button:hover { background: #333; }
-        button:disabled { background: #ccc; cursor: not-allowed; }
+        :root {
+            --bg: #ffffff;
+            --text: #1a1a1a;
+            --border: #e0e0e0;
+            --accent: #2563eb;
+            --chat-bg: #f8fafc;
+            --quiz-bg: #ffffff;
+            --user-msg: #eff6ff;
+            --assistant-msg: #ffffff;
+        }
 
-        .quiz-btn { background: #4CAF50; margin-top: 1rem; width: 100%; display: none; }
-        .option-label { display: block; padding: 0.5rem; border: 1px solid #ddd; margin: 0.5rem 0; cursor: pointer; }
-        .option-label:hover { background: #eee; }
-        .correct { background: #c8e6c9 !important; border-color: #4caf50 !important; }
-        .wrong { background: #ffcdd2 !important; border-color: #f44336 !important; }
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--bg);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        header {
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .tagline {
+            color: #666;
+            font-size: 0.875rem;
+        }
+
+        main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        #chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border);
+            padding: 1.5rem;
+            background: var(--chat-bg);
+        }
+
+        #chat-window {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .message {
+            margin-bottom: 1.5rem;
+            padding: 1rem 1.25rem;
+            border-radius: 12px;
+            max-width: 85%;
+            font-size: 0.95rem;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .user {
+            background: var(--user-msg);
+            margin-left: auto;
+            border: 1px solid #dbeafe;
+        }
+
+        .assistant {
+            background: var(--assistant-msg);
+            margin-right: auto;
+            border: 1px solid var(--border);
+        }
+
+        .assistant pre {
+            background: #f1f5f9;
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 0.75rem;
+            background: #fff;
+            padding: 0.75rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="text"] {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 0.95rem;
+            font-family: inherit;
+        }
+
+        button {
+            padding: 0.6rem 1.25rem;
+            background: var(--text);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: #333;
+            transform: translateY(-1px);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #assessment-container {
+            width: 400px;
+            padding: 1.5rem;
+            overflow-y: auto;
+            background: var(--quiz-bg);
+        }
+
+        .quiz-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .option-label {
+            display: block;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin: 0.5rem 0;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .option-label:hover {
+            border-color: var(--accent);
+            background: #f8fafc;
+        }
+
+        .option-label input {
+            margin-right: 0.75rem;
+        }
+
+        .correct {
+            background: #dcfce7 !important;
+            border-color: #22c55e !important;
+            color: #166534;
+        }
+
+        .wrong {
+            background: #fee2e2 !important;
+            border-color: #ef4444 !important;
+            color: #991b1b;
+        }
+
+        .quiz-trigger-btn {
+            display: none;
+            width: 100%;
+            background: var(--accent);
+            margin-top: 1rem;
+        }
+
+        .score-display {
+            text-align: center;
+            padding: 1rem;
+            background: var(--accent);
+            color: #fff;
+            border-radius: 8px;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+
+        /* Markdown Overrides */
+        .assistant p {
+            margin-top: 0;
+        }
+
+        .assistant ul,
+        .assistant ol {
+            padding-left: 1.5rem;
+        }
     </style>
 </head>
+
 <body>
 
-    <h1>🎓 Intelligent AI Tutor (SFA Mode)</h1>
-    <p>Minimalist learning interface. No frameworks, just logic.</p>
+    <header>
+        <div>
+            <h1>🎓 Intelligent AI Tutor</h1>
+            <div class="tagline">Single-File Architecture (SFA) Mode</div>
+        </div>
+        <button onclick="resetSession()" style="background:none; color:#666; border:1px solid #ddd;">Reset</button>
+    </header>
 
-    <div class="container">
-        <!-- Chat Area -->
-        <div id="chat-section">
+    <main>
+        <section id="chat-container">
             <div id="chat-window"></div>
-            <div class="controls">
-                <input type="text" id="user-input" placeholder="What do you want to learn?">
+            <div class="input-area">
+                <input type="text" id="user-input" placeholder="What do you want to learn today?">
                 <button id="send-btn">Send</button>
             </div>
-            <button id="start-quiz-btn" class="quiz-btn">🚀 Start Contextual Quiz</button>
-        </div>
+            <button id="start-quiz-btn" class="quiz-trigger-btn">🚀 Start Contextual Quiz</button>
+        </section>
 
-        <!-- Quiz Area -->
-        <div id="quiz-section">
+        <section id="assessment-container">
             <h3>📝 Assessment Center</h3>
-            <div id="quiz-container">
-                <p>Learn something first! The quiz will appear here.</p>
+            <div id="quiz-ui">
+                <p style="color: #666; font-size: 0.9rem;">Teach the AI a topic first. When you're ready, the quiz will
+                    appear here.</p>
             </div>
-        </div>
-    </div>
+        </section>
+    </main>
 
     <script>
         let messages = [];
@@ -62,7 +266,10 @@
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
         const startQuizBtn = document.getElementById('start-quiz-btn');
-        const quizContainer = document.getElementById('quiz-container');
+        const quizUI = document.getElementById('quiz-ui');
+
+        // Initialize marked
+        marked.setOptions({ gfm: true, breaks: true });
 
         async function sendMessage() {
             const text = userInput.value.trim();
@@ -78,17 +285,19 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ messages })
                 });
+
+                if (!response.ok) throw new Error('Backend failed');
+
                 const data = await response.json();
                 addMessage('assistant', data.content);
 
-                // Check for quiz trigger (case insensitive check)
-                if (data.content.toLowerCase().includes('quiz') || data.content.toLowerCase().includes('test')) {
+                // Detect if the AI suggested a quiz
+                const lowerContent = data.content.toLowerCase();
+                if (lowerContent.includes('quiz') || lowerContent.includes('test') || lowerContent.includes('button below')) {
                     startQuizBtn.style.display = 'block';
-                } else {
-                    startQuizBtn.style.display = 'none';
                 }
             } catch (err) {
-                addMessage('assistant', 'Error: Could not reach the tutor.');
+                addMessage('assistant', '⚠️ **Error:** I lost connection to the server. Please check if `api.py` is running.');
             } finally {
                 setLoading(false);
             }
@@ -98,9 +307,16 @@
             messages.push({ role, content });
             const div = document.createElement('div');
             div.className = `message ${role}`;
-            div.textContent = content;
+
+            if (role === 'assistant') {
+                div.innerHTML = marked.parse(content);
+            } else {
+                div.textContent = content;
+            }
+
             chatWindow.appendChild(div);
-            chatWindow.scrollTop = chatWindow.scrollHeight;
+            // Smooth scroll
+            chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
         }
 
         function setLoading(loading) {
@@ -109,8 +325,17 @@
             sendBtn.textContent = loading ? '...' : 'Send';
         }
 
+        function resetSession() {
+            messages = [];
+            chatWindow.innerHTML = '';
+            quizUI.innerHTML = '<p style="color: #666; font-size: 0.9rem;">Session reset. Ready for a new topic!</p>';
+            startQuizBtn.style.display = 'none';
+        }
+
         startQuizBtn.onclick = async () => {
-            quizContainer.innerHTML = '<p>Building your personalized quiz...</p>';
+            quizUI.innerHTML = '<div class="quiz-card" style="text-align:center;">Building your quiz... 🧠</div>';
+            startQuizBtn.style.display = 'none';
+
             try {
                 const response = await fetch('/api/quiz', {
                     method: 'POST',
@@ -119,59 +344,85 @@
                 });
                 const data = await response.json();
                 renderQuiz(data.questions);
-                startQuizBtn.style.display = 'none';
             } catch (err) {
-                quizContainer.innerHTML = '<p>Error generating quiz.</p>';
+                quizUI.innerHTML = '<div class="quiz-card" style="color:red;">Error building quiz. Try clarifying the topic first.</div>';
             }
         };
 
         function renderQuiz(questions) {
-            quizContainer.innerHTML = '';
+            quizUI.innerHTML = `
+                <div class="score-display" id="score-box" style="display:none; margin-bottom:1rem;"></div>
+            `;
+
             questions.forEach((q, qIndex) => {
-                const qDiv = document.createElement('div');
-                qDiv.innerHTML = `<p><strong>Q${qIndex+1}: ${q.question}</strong></p>`;
-                
+                const card = document.createElement('div');
+                card.className = 'quiz-card';
+                card.innerHTML = `<p><strong>Q${qIndex + 1}: ${q.question}</strong></p>`;
+
                 q.options.forEach(opt => {
                     const label = document.createElement('label');
                     label.className = 'option-label';
-                    label.innerHTML = `<input type="radio" name="q${qIndex}" value="${opt}"> ${opt}`;
-                    qDiv.appendChild(label);
+                    label.innerHTML = `
+                        <input type="radio" name="q${qIndex}" value="${opt.replace(/"/g, '&quot;')}">
+                        <span>${opt}</span>
+                    `;
+                    card.appendChild(label);
                 });
-                quizContainer.appendChild(qDiv);
+                quizUI.appendChild(card);
             });
 
             const submitBtn = document.createElement('button');
-            submitBtn.textContent = 'Submit Answers';
+            submitBtn.id = 'final-submit-btn';
+            submitBtn.textContent = 'Submit Assessment 🚀';
             submitBtn.style.width = '100%';
             submitBtn.onclick = () => gradeQuiz(questions);
-            quizContainer.appendChild(submitBtn);
+            quizUI.appendChild(submitBtn);
         }
 
         function gradeQuiz(questions) {
             let score = 0;
+            let answeredCount = 0;
+
             questions.forEach((q, i) => {
                 const selected = document.querySelector(`input[name="q${i}"]:checked`);
                 const options = document.querySelectorAll(`input[name="q${i}"]`);
-                
+
+                if (selected) answeredCount++;
+
                 options.forEach(opt => {
                     const label = opt.parentElement;
-                    if (opt.value.trim().toLowerCase() === q.correct_answer.trim().toLowerCase()) {
+                    const val = opt.value.trim().toLowerCase();
+                    const correct = q.correct_answer.trim().toLowerCase();
+
+                    if (val === correct) {
                         label.classList.add('correct');
                     }
-                    if (selected && opt === selected && opt.value.trim().toLowerCase() !== q.correct_answer.strip().toLowerCase()) {
+                    if (selected && opt === selected && val !== correct) {
                         label.classList.add('wrong');
                     }
+                    opt.disabled = true;
                 });
 
                 if (selected && selected.value.trim().toLowerCase() === q.correct_answer.trim().toLowerCase()) {
                     score++;
                 }
             });
-            alert(`You scored ${score} out of ${questions.length}!`);
+
+            if (answeredCount < questions.length) {
+                alert("Please answer all questions first!");
+                return;
+            }
+
+            const scoreBox = document.getElementById('score-box');
+            scoreBox.style.display = 'block';
+            scoreBox.textContent = `Result: ${score} / ${questions.length} Correct`;
+
+            document.getElementById('final-submit-btn').style.display = 'none';
         }
 
         sendBtn.onclick = sendMessage;
         userInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
     </script>
 </body>
+
 </html>
