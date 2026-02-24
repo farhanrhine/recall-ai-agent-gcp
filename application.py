@@ -63,8 +63,9 @@ def main():
                         with st.chat_message("assistant"):
                             st.markdown(ai_response.content)
                     
-                    # Check if AI suggested a quiz
-                    if "Use the button below to start!" in ai_response.content:
+                    # More robust check for quiz suggestion
+                    trigger_keywords = ["quiz", "test", "assessment", "button below"]
+                    if any(word in ai_response.content.lower() for word in trigger_keywords):
                         st.session_state.quiz_button_visible = True
                     
                     st.rerun()
@@ -99,11 +100,21 @@ def main():
             with st.form("current_lesson_quiz"):
                 for i, q in enumerate(quiz['questions']):
                     st.write(f"**Q{i+1}: {q['question']}**")
-                    # Set index=None so no option is pre-selected
-                    user_answers[i] = st.radio(f"Options for Q{i+1}", q['options'], key=f"study_q_{i}", index=None)
+                    options = q.get('options', [])
+                    if not options:
+                        st.warning("No options found for this question.")
+                        continue
+                        
+                    # Stable key ensured user_answers are preserved after rerun
+                    user_answers[i] = st.radio(
+                        f"**Choose the best answer:**", 
+                        options, 
+                        key=f"study_q_{i}",
+                        index=None,
+                        disabled=st.session_state.get("quiz_submitted", False)
+                    )
                     
                     if st.session_state.get("quiz_submitted"):
-                        # Use case-insensitive stripped comparison, handling None
                         user_ans = (user_answers[i] or "").strip().lower()
                         correct_ans = q['correct_answer'].strip().lower()
                         if user_ans == correct_ans:
@@ -112,10 +123,8 @@ def main():
                             st.error(f"Incorrect. Correct answer: {q['correct_answer']}")
                     st.divider()
                 
-                # Submit button must ALWAYS be rendered within the form
                 submitted = st.form_submit_button("Submit Assessment", disabled=st.session_state.get("quiz_submitted", False))
                 if submitted:
-                    # Optional: check if all answered
                     if any(a is None for a in user_answers.values()):
                         st.warning("Please answer all questions before submitting.")
                     else:
