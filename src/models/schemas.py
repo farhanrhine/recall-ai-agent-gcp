@@ -3,8 +3,8 @@ from pydantic import BaseModel, Field, field_validator
 
 class MCQQuestion(BaseModel):
     question: str = Field(description="The question text")
-    options: List[str] = Field(description="List of 4 options")
-    correct_answer: str = Field(description="The correct answer from the options")
+    options: List[str] = Field(description="List of exactly 4 options")
+    correct_answer: str = Field(description="The correct answer which MUST be one of the options")
 
     @field_validator('question', mode='before')
     @classmethod
@@ -23,3 +23,7 @@ class FillBlankQuestion(BaseModel):
         if isinstance(v, dict):
             return v.get('description', str(v))
         return str(v)
+
+class Quiz(BaseModel):
+    title: str = Field(description="Title of the quiz")
+    questions: List[MCQQuestion] = Field(description="List of multiple-choice questions")

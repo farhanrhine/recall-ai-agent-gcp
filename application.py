@@ -1,110 +1,109 @@
-import os
 import streamlit as st
+from src.agent.companion import CompanionAgent
 from dotenv import load_dotenv
-from src.utils.helpers import *
-from src.generator.question_generator import QuestionGenerator
+import os
+import json
+from langchain_core.messages import AIMessage
+
 load_dotenv()
 
-
 def main():
-    st.set_page_config(page_title="studdy Buddy AI" , page_icon="🎧🎧")
+    st.set_page_config(page_title="Personal AI Agent Companion", page_icon="🤖", layout="wide")
 
-    if 'quiz_manager' not in st.session_state:
-        st.session_state.quiz_manager = QuizManager()
+    if "agent" not in st.session_state:
+        st.session_state.agent = CompanionAgent()
 
-    if 'quiz_generated' not in st.session_state:
-        st.session_state.quiz_generated = False
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
 
-    if 'quiz_submitted' not in st.session_state:
-        st.session_state.quiz_submitted = False
+    if "current_quiz" not in st.session_state:
+        st.session_state.current_quiz = None
 
-    if 'rerun_trigger'not in st.session_state:
-        st.session_state.rerun_trigger = False
+    st.title("🤖 Personal AI Agent Companion")
+    st.markdown("---")
+
+    col1, col2 = st.columns([2, 1])
+
+    with col1:
+        # Display chat messages
+        for message in st.session_state.messages:
+            role = "user" if message["role"] == "user" else "assistant"
+            with st.chat_message(role):
+                st.markdown(message["content"])
+
+        # Chat input
+        if prompt := st.chat_input("How can I help you today?"):
+            st.session_state.messages.append({"role": "user", "content": prompt})
+            with st.chat_message("user"):
+                st.markdown(prompt)
+
+            try:
+                with st.spinner("Processing..."):
+                    # Get list of new messages
+                    new_messages = st.session_state.agent.chat(prompt)
+                    
+                    for msg in new_messages:
+                        if msg.type == "ai" and msg.content:
+                            st.session_state.messages.append({"role": "assistant", "content": msg.content})
+                            with st.chat_message("assistant"):
+                                st.markdown(msg.content)
+                        
+                        elif msg.type == "tool":
+                            # Check if this tool output contains a quiz
+                            try:
+                                data = json.loads(msg.content)
+                                if isinstance(data, list) and len(data) > 0 and "question" in data[0]:
+                                    st.session_state.current_quiz = data
+                                    st.success("New quiz generated! Check the sidebar.")
+                            except:
+                                pass
+            except Exception as e:
+                st.error(f"Agent Error: {e}")
+
+    with col2:
+        st.header("🧠 Agent Memory & Tasks")
         
-
-    st.title("🎓 Study Buddy AI")
-
-    st.sidebar.header("Quiz Settings")
-
-    question_type = st.sidebar.selectbox(
-        "Select Question Type" ,
-        ["Multiple Choice" , "Fill in the Blank"],
-        index=0
-    )
-
-    topic = st.sidebar.text_input("Enter Topic" , placeholder="Indian History, geography")
-
-    difficulty = st.sidebar.selectbox(
-        "Difficulty Level",
-        ["Easy" , "Medium" , "Hard"],
-        index=1
-    )
-
-    num_questions=st.sidebar.number_input(
-        "Number of Questions",
-        min_value=1,  max_value=10 , value=5
-    )
-
-    
-
-    
-    if st.sidebar.button("Generate Quiz"):
-        st.session_state.quiz_submitted = False
-
-        generator = QuestionGenerator()
-        success = st.session_state.quiz_manager.generate_questions(
-            generator,
-            topic,question_type,difficulty,num_questions
-        )
-
-        st.session_state.quiz_generated= success
-        rerun()
-
-    if st.session_state.quiz_generated and st.session_state.quiz_manager.questions:
-        st.header("Quiz")
-        st.session_state.quiz_manager.attempt_quiz()
-
-        if st.button("Submit Quiz"):
-            st.session_state.quiz_manager.evaluate_quiz()
-            st.session_state.quiz_submitted = True
-            rerun()
-
-    if st.session_state.quiz_submitted:
-        st.header("Quiz Results")
-        results_df = st.session_state.quiz_manager.generate_result_dataframe()
-
-        if not results_df.empty:
-            correct_count = results_df["is_correct"].sum()
-            total_questions = len(results_df)
-            score_percentage = (correct_count/total_questions)*100
-            st.write(f"Score : {score_percentage}")
-
-            for _, result in results_df.iterrows():
-                question_num = result['question_number']
-                if result['is_correct']:
-                    st.success(f"✅ Question {question_num} : {result['question']}")
+        # Profile Data
+        if os.path.exists("user_profile.json"):
+            with open("user_profile.json", "r") as f:
+                profile = json.load(f)
+                if profile:
+                    st.subheader("User Profile")
+                    for k, v in profile.items():
+                        st.write(f"**{k.replace('_', ' ').capitalize()}**: {v}")
                 else:
-                    st.error(f"❌ Question {question_num} : {result['question']}")
-                    st.write(f"Your answer : {result['user_answer']}")
-                    st.write(f"Correct answer : {result['correct_answer']}")
+                    st.info("Agent is still learning about you...")
+        
+        st.markdown("---")
+
+        # Quiz Display
+        if st.session_state.current_quiz:
+            st.subheader("📝 Practice Quiz")
+            score = 0
+            with st.form("quiz_form"):
+                for i, q in enumerate(st.session_state.current_quiz):
+                    st.write(f"**Q{i+1}: {q['question']}**")
+                    choice = st.radio(f"Options for Q{i+1}", q['options'], key=f"q_{i}")
+                    if choice == q['correct_answer']:
+                        score += 1
                 
-                st.markdown("-------")
-
+                submitted = st.form_submit_button("Submit Answers")
+                if submitted:
+                    st.success(f"You scored {score}/{len(st.session_state.current_quiz)}!")
+                    if score == len(st.session_state.current_quiz):
+                        st.balloons()
             
-            if st.button("Save Results"):
-                saved_file = st.session_state.quiz_manager.save_to_csv()
-                if saved_file:
-                    with open(saved_file,'rb') as f:
-                        st.download_button(
-                            label="Downlaod Results",
-                            data=f.read(),
-                            file_name=os.path.basename(saved_file),
-                            mime='text/csv'
-                        )
-                else:
-                    st.warning("No results available")
+            if st.button("Clear Quiz"):
+                st.session_state.current_quiz = None
+                st.rerun()
 
-if __name__=="__main__":
+        # Reset
+        if st.sidebar.button("Reset Everything"):
+            st.session_state.messages = []
+            st.session_state.current_quiz = None
+            if os.path.exists("user_profile.json"):
+                os.remove("user_profile.json")
+            st.rerun()
+
+if __name__ == "__main__":
     main()
-
-        

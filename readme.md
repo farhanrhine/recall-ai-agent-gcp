@@ -1,88 +1,63 @@
-# 🎓 Study Buddy AI - Smart Quiz Generator
+# 🧘 Personal AI Companion
 
-Study Buddy AI is an advanced, AI-powered educational tool designed to help students and educators generate high-quality quizzes on any topic instantly. Built with Python and Streamlit, it leverages the power of Large Language Models (LLMs) via Groq to create Multiple Choice Questions (MCQs) and Fill-in-the-Blank exercises.
+A supportive, insightful, and proactive personal AI companion designed to help you navigate your daily life. Built with Python, Streamlit, and the latest LangChain Agents, this companion remembers your goals, preferences, and challenges to provide personalized coaching and support.
 
 ## 🚀 Features
 
-- **Instant Quiz Generation**: Enter any topic (e.g., "Quantum Physics", "World War II") and get a quiz in seconds.
-- **Customizable Difficulty**: Choose between Easy, Medium, and Hard levels.
-- **Question Types**: Support for Multiple Choice and Fill in the Blanks.
-- **Real-time Evaluation**: Get instant feedback on your answers with explanations.
-- **Export Results**: Download your quiz performance as a CSV file for tracking.
-- **GitOps Integration**: Fully automated CI/CD pipeline using Jenkins, ArgoCD, and Kubernetes.
+- **Personalized Onboarding**: The agent gets to know you through a series of thoughtful questions.
+- **Persistent Personal Memory**: Remembers your goals, stressors, and preferences using dedicated memory tools.
+- **Conversational Awareness**: Maintains state across messages using `InMemorySaver`.
+- **Modern AI Infrastructure**: Powered by Groq (Llama 3.1) and managed with **uv**.
+- **GitOps Ready**: Fully automated CI/CD pipeline for Kubernetes deployment.
 
 ## 🛠️ Tech Stack
 
 - **Frontend**: [Streamlit](https://streamlit.io/)
-- **LLM Engine**: [Groq](https://groq.com/) (Llama 3.1 8B)
-- **Containerization**: [Docker](https://www.docker.com/)
-- **Orchestration**: [Kubernetes (Minikube)](https://kubernetes.io/)
-- **CI/CD**: [Jenkins](https://www.jenkins.io/)
-- **GitOps**: [ArgoCD](https://argoproj.github.io/cd/)
-- **Infrastructure**: [Google Cloud Platform (GCP)](https://cloud.google.com/)
+- **Agent Framework**: [LangChain](https://www.langchain.com/) (latest `create_agent` patterns)
+- **Memory Management**: LangGraph `InMemorySaver` + Custom JSON-based profile storage
+- **Engine**: [Groq](https://groq.com/) (Llama 3.1 8B)
+- **Orchestration**: Kubernetes
+- **Dependency Management**: [uv](https://github.com/astral-sh/uv)
 
 ## 📂 Project Structure
 
 ```text
 personal-study-ai-agent/
 │
-├── application.py          # Main Streamlit application
-├── Dockerfile              # Containerization configuration
-├── Jenkinsfile            # CI/CD pipeline definition
-├── manifests/              # Kubernetes deployment & service YAMLs
-│   ├── deployment.yaml
-│   └── service.yaml
-├── src/                    # Source code
-│   ├── generator/          # Quiz generation logic
-│   ├── llm/                # LLM client & API integration
-│   ├── models/             # Data schemas (Pydantic)
-│   ├── prompts/            # LLM prompt templates
-│   └── utils/              # Helper functions & QuizManager
-├── FULL_DOCUMENTATION.md   # Detailed setup and deployment guide
-└── README.md               # Project overview
+├── application.py          # Main Chat UI
+├── src/
+│   ├── agent/             # Companion logic & tools
+│   │   ├── companion.py    # CompanionAgent class
+│   │   └── tools.py       # Memory & side-effect tools
+│   ├── llm/               # model initialization
+│   ├── prompts/           # System & onboarding prompts
+│   └── common/            # Logger & exceptions
+├── Dockerfile              # uv-based container setup
+└── README.md
 ```
-
-## 🏗️ Architecture & Workflow
-
-The project follows a modern GitOps workflow:
-1. **Developer** pushes code to GitHub.
-2. **Jenkins** triggers a build, creates a Docker image, and pushes it to DockerHub.
-3. **ArgoCD** detects changes in the `manifests/` directory and synchronizes the state with the **Kubernetes** cluster.
-
-![Project Workflow](./workflow.png)
 
 ## 🚦 Getting Started
 
 ### Prerequisites
 
 - Python 3.12+
-- Groq API Key (add to `.env`)
+- Groq API Key in `.env`
 
-### Local Installation
+### Local Setup
 
-1. **Clone the repository**:
+1. **Clone & Sync**:
+
    ```bash
    git clone https://github.com/farhanrhine/personal-study-ai-agent.git
    cd personal-study-ai-agent
+   uv sync
    ```
 
-2. **Install dependencies**:
+2. **Run**:
+
    ```bash
-   pip install -e .
+   uv run streamlit run application.py
    ```
-
-3. **Run the application**:
-   ```bash
-   streamlit run application.py
-   ```
-
-### Deployment
-
-For detailed instructions on setting up Jenkins, ArgoCD, and Kubernetes on GCE, please refer to the [FULL_DOCUMENTATION.md](./FULL_DOCUMENTATION.md).
-
-## 🛡️ License
-
-This project is created for educational purposes. Feel free to use and modify it!
 
 ---
-*Created with ❤️ by Farhan Rhine*
+*Helping you find your flow, one conversation at a time.*
