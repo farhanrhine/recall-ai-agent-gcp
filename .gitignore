@@ -3,9 +3,8 @@ venv/
 .env
 LLMOPS_3.egg-info/
 results/
-UNDERSTANDING.md
-gcp-vm-minikube-Jenkins-argocd-gitops.md
 KUBECONFIG FILE/
 kubeconfig
 *.key
 *.crt
+docs/
