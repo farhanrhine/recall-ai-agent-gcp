@@ -4,14 +4,14 @@
 # This Dockerfile builds a container for the FastAPI/SFA Pro application.
 #
 # BUILD COMMAND:
-#   docker build -t recall-ai-agent:v1 .
+#   docker build -t recall-ai-agent-gcp:v1 .
 #
 # RUN COMMAND:
-#   docker run -p 8080:8080 --env-file .env recall-ai-agent:v1
+#   docker run -p 8080:8080 --env-file .env recall-ai-agent-gcp:v1
 #
 # FOR KUBERNETES:
-#   docker build -t farhanrhine/recall-ai-agent:latest .
-#   docker push farhanrhine/recall-ai-agent:latest
+#   docker build -t farhanrhine/recall-ai-agent-gcp:latest .
+#   docker push farhanrhine/recall-ai-agent-gcp:latest
 # ==============================================================================
 
 # Use Python 3.12 slim image (matches pyproject.toml requires-python >= 3.12)

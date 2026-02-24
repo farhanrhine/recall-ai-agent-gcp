@@ -1,5 +1,5 @@
 [project]
-name = "recall-ai-agent"
+name = "recall-ai-agent-gcp"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"

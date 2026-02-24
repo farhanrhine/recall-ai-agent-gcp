@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: llmops-app
-        image: farhanrhine/recall-ai-agent:latest
+        image: farhanrhine/recall-ai-agent-gcp:latest
         ports:
         - containerPort: 8080
         resources:

@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        DOCKER_HUB_REPO = "farhanrhine/recall-ai-agent"
+        DOCKER_HUB_REPO = "farhanrhine/recall-ai-agent-gcp"
         DOCKER_HUB_CREDENTIALS_ID = "dockerhub-token"
         IMAGE_TAG = "v${BUILD_NUMBER}"
     }
@@ -9,7 +9,7 @@ pipeline {
         stage('Checkout Github') {
             steps {
                 echo 'Checking out code from GitHub...'
-                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'github-token', url: 'https://github.com/farhanrhine/recall-ai-agent.git']])
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'github-token', url: 'https://github.com/farhanrhine/recall-ai-agent-gcp.git']])
             }
         }        
         stage('Build Docker Image') {
@@ -34,7 +34,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                    sed -i 's|image: farhanrhine/recall-ai-agent:.*|image: farhanrhine/recall-ai-agent:${IMAGE_TAG}|' manifests/deployment.yaml
+                    sed -i 's|image: farhanrhine/recall-ai-agent-gcp:.*|image: farhanrhine/recall-ai-agent-gcp:${IMAGE_TAG}|' manifests/deployment.yaml
                     """
                 }
             }
@@ -49,7 +49,7 @@ pipeline {
                         git config user.email "mohammadfarhanalam09@gmail.com"
                         git add manifests/deployment.yaml
                         git commit -m "Update image tag to ${IMAGE_TAG}" || echo "No changes to commit"
-                        git push https://${GIT_USER}:${GIT_PASS}@github.com/farhanrhine/recall-ai-agent.git HEAD:main
+                        git push https://${GIT_USER}:${GIT_PASS}@github.com/farhanrhine/recall-ai-agent-gcp.git HEAD:main
                         '''
                     }
                 }

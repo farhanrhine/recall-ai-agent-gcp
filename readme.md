@@ -48,19 +48,68 @@ After starting, open your browser and go to:
 ## 🐳 Docker Deployment
 
 ```bash
-# Build the image
-docker build -t recall-ai-agent:latest .
+# Build the image (for Docker Hub)
+docker build -t farhanrhine/recall-ai-agent-gcp:latest .
 
-# Run the container
-docker run -p 8080:8080 --env-file .env recall-ai-agent:latest
+# Run the container (for production)
+docker run -p 8080:8080 --env-file .env farhanrhine/recall-ai-agent-gcp:latest
+```
+
+## � Project Structure
+
+```
+recall-ai-agent/
+├── index.html                 # Single-file frontend
+├── main.py                    # FastAPI entry point
+├── pyproject.toml             # Dependencies (Python 3.12+)
+├── Dockerfile                 # Container setup
+├── Jenkinsfile                # CI/CD pipeline
+├── src/
+│   ├── agent/                 # AI agent logic
+│   │   ├── companion.py       # Chat & quiz generation
+│   │   └── tools.py           # LLM tool definitions
+│   ├── llm/                   # LLM integration
+│   │   └── groq_client.py     # Groq API client
+│   ├── models/                # Data schemas
+│   │   └── schemas.py         # Pydantic models
+│   ├── prompts/               # System prompts
+│   │   └── templates.py       # Prompt templates
+│   ├── config/                # Configuration
+│   │   └── settings.py        # Environment settings
+│   ├── common/                # Utilities
+│   │   ├── logger.py          # Logging setup
+│   │   └── custom_exception.py
+│   └── utils/
+│       └── helpers.py         # Helper functions
+├── manifests/                 # Kubernetes configs
+│   ├── deployment.yaml
+│   └── service.yaml
+└── logs/                      # Application logs
 ```
 
 ## 🛠️ Tech Stack
 
-- **Backend**: FastAPI, LangChain, Groq (LLaMA-3)
+- **Backend**: FastAPI, LangChain, Groq (LLaMA-3.1-8B)
 - **Frontend**: Vanilla HTML5, CSS3, JavaScript (ES6+)
-- **Package Management**: `uv`
-- **Infrastructure**: Docker, Kubernetes (Minikube), Jenkins, Argo CD
+- **Syntax Highlighting**: highlight.js, marked.js
+- **Package Management**: `uv` (ultra-fast Python package manager)
+- **Containerization**: Docker
+- **Orchestration**: Kubernetes (Minikube)
+- **CI/CD**: Jenkins, Argo CD
+
+## 📋 API Endpoints
+
+- `POST /api/chat` - Chat with the AI tutor
+- `POST /api/quiz` - Generate contextual quiz from history
+- `GET /` - Serve the frontend
+
+## 🧪 Features
+
+- **Teach-then-Test**: AI teaches concepts before generating quizzes
+- **Context-Aware Quizzes**: Generated from actual chat history
+- **Syntax Highlighting**: Beautiful code blocks with highlight.js
+- **Session Persistence**: LocalStorage-based chat history
+- **Zero Hallucination**: Quizzes stay within taught context
 
 ---
 *Built with focus on simplicity, speed, and engineering pragmatism.*
