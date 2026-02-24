@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Tutor - SFA</title>
+    <style>
+        /* Minimalist, Brutalist CSS */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 2rem; background: #fff; }
+        h1, h2 { border-bottom: 2px solid #000; padding-bottom: 0.5rem; }
+        .container { display: flex; gap: 2rem; }
+        #chat-section { flex: 1.5; }
+        #quiz-section { flex: 1; background: #f9f9f9; padding: 1rem; border: 1px solid #ddd; height: fit-content; position: sticky; top: 1rem; }
+        
+        #chat-window { border: 2px solid #000; height: 500px; overflow-y: auto; padding: 1rem; margin-bottom: 1rem; background: #fafafa; }
+        .message { margin-bottom: 1rem; padding: 0.5rem 1rem; border-radius: 8px; max-width: 85%; }
+        .user { background: #e3f2fd; margin-left: auto; border: 1px solid #2196f3; }
+        .assistant { background: #f5f5f5; margin-right: auto; border: 1px solid #9e9e9e; white-space: pre-wrap; }
+        
+        .controls { display: flex; gap: 0.5rem; }
+        input[type="text"] { flex: 1; padding: 0.8rem; border: 2px solid #000; outline: none; }
+        button { padding: 0.8rem 1.5rem; background: #000; color: #fff; border: none; cursor: pointer; font-weight: bold; }
+        button:hover { background: #333; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+
+        .quiz-btn { background: #4CAF50; margin-top: 1rem; width: 100%; display: none; }
+        .option-label { display: block; padding: 0.5rem; border: 1px solid #ddd; margin: 0.5rem 0; cursor: pointer; }
+        .option-label:hover { background: #eee; }
+        .correct { background: #c8e6c9 !important; border-color: #4caf50 !important; }
+        .wrong { background: #ffcdd2 !important; border-color: #f44336 !important; }
+    </style>
+</head>
+<body>
+
+    <h1>🎓 Intelligent AI Tutor (SFA Mode)</h1>
+    <p>Minimalist learning interface. No frameworks, just logic.</p>
+
+    <div class="container">
+        <!-- Chat Area -->
+        <div id="chat-section">
+            <div id="chat-window"></div>
+            <div class="controls">
+                <input type="text" id="user-input" placeholder="What do you want to learn?">
+                <button id="send-btn">Send</button>
+            </div>
+            <button id="start-quiz-btn" class="quiz-btn">🚀 Start Contextual Quiz</button>
+        </div>
+
+        <!-- Quiz Area -->
+        <div id="quiz-section">
+            <h3>📝 Assessment Center</h3>
+            <div id="quiz-container">
+                <p>Learn something first! The quiz will appear here.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let messages = [];
+
+        const chatWindow = document.getElementById('chat-window');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const startQuizBtn = document.getElementById('start-quiz-btn');
+        const quizContainer = document.getElementById('quiz-container');
+
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            addMessage('user', text);
+            userInput.value = '';
+            setLoading(true);
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ messages })
+                });
+                const data = await response.json();
+                addMessage('assistant', data.content);
+
+                // Check for quiz trigger (case insensitive check)
+                if (data.content.toLowerCase().includes('quiz') || data.content.toLowerCase().includes('test')) {
+                    startQuizBtn.style.display = 'block';
+                } else {
+                    startQuizBtn.style.display = 'none';
+                }
+            } catch (err) {
+                addMessage('assistant', 'Error: Could not reach the tutor.');
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        function addMessage(role, content) {
+            messages.push({ role, content });
+            const div = document.createElement('div');
+            div.className = `message ${role}`;
+            div.textContent = content;
+            chatWindow.appendChild(div);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        function setLoading(loading) {
+            sendBtn.disabled = loading;
+            userInput.disabled = loading;
+            sendBtn.textContent = loading ? '...' : 'Send';
+        }
+
+        startQuizBtn.onclick = async () => {
+            quizContainer.innerHTML = '<p>Building your personalized quiz...</p>';
+            try {
+                const response = await fetch('/api/quiz', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ messages })
+                });
+                const data = await response.json();
+                renderQuiz(data.questions);
+                startQuizBtn.style.display = 'none';
+            } catch (err) {
+                quizContainer.innerHTML = '<p>Error generating quiz.</p>';
+            }
+        };
+
+        function renderQuiz(questions) {
+            quizContainer.innerHTML = '';
+            questions.forEach((q, qIndex) => {
+                const qDiv = document.createElement('div');
+                qDiv.innerHTML = `<p><strong>Q${qIndex+1}: ${q.question}</strong></p>`;
+                
+                q.options.forEach(opt => {
+                    const label = document.createElement('label');
+                    label.className = 'option-label';
+                    label.innerHTML = `<input type="radio" name="q${qIndex}" value="${opt}"> ${opt}`;
+                    qDiv.appendChild(label);
+                });
+                quizContainer.appendChild(qDiv);
+            });
+
+            const submitBtn = document.createElement('button');
+            submitBtn.textContent = 'Submit Answers';
+            submitBtn.style.width = '100%';
+            submitBtn.onclick = () => gradeQuiz(questions);
+            quizContainer.appendChild(submitBtn);
+        }
+
+        function gradeQuiz(questions) {
+            let score = 0;
+            questions.forEach((q, i) => {
+                const selected = document.querySelector(`input[name="q${i}"]:checked`);
+                const options = document.querySelectorAll(`input[name="q${i}"]`);
+                
+                options.forEach(opt => {
+                    const label = opt.parentElement;
+                    if (opt.value.trim().toLowerCase() === q.correct_answer.trim().toLowerCase()) {
+                        label.classList.add('correct');
+                    }
+                    if (selected && opt === selected && opt.value.trim().toLowerCase() !== q.correct_answer.strip().toLowerCase()) {
+                        label.classList.add('wrong');
+                    }
+                });
+
+                if (selected && selected.value.trim().toLowerCase() === q.correct_answer.trim().toLowerCase()) {
+                    score++;
+                }
+            });
+            alert(`You scored ${score} out of ${questions.length}!`);
+        }
+
+        sendBtn.onclick = sendMessage;
+        userInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
+    </script>
+</body>
+</html>
