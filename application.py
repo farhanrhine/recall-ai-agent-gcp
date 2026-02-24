@@ -1,12 +1,13 @@
 import streamlit as st
 from src.agent.companion import CompanionAgent
 from dotenv import load_dotenv
+import json
 from langchain_core.messages import HumanMessage, AIMessage
 
 load_dotenv()
 
 def main():
-    st.set_page_config(page_title="Personal AI Agent Master", page_icon="🧬", layout="wide")
+    st.set_page_config(page_title="Personal AI Tutor", page_icon="🎓", layout="wide")
 
     if "agent" not in st.session_state:
         st.session_state.agent = CompanionAgent()
@@ -14,118 +15,115 @@ def main():
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
-    if "quiz_data" not in st.session_state:
-        st.session_state.quiz_data = None
+    if "active_quiz" not in st.session_state:
+        st.session_state.active_quiz = None
 
-    st.title("🧬 Personal AI Agent Master")
+    st.title("🎓 Personal AI Tutor")
+    st.caption("Learn anything. Test your knowledge. Master the topic.")
     st.markdown("---")
 
-    # Create Tabs for different modes
-    tab1, tab2 = st.tabs(["💬 Chat Assistant", "📝 Quiz Master"])
+    col_chat, col_study = st.columns([1.5, 1])
 
-    with tab1:
-        st.subheader("General Agentic Support")
-        chat_container = st.container(height=500)
+    with col_chat:
+        st.subheader("💬 Learning Conversation")
         
-        with chat_container:
+        # Chat history container
+        chat_placeholder = st.container(height=550)
+        
+        with chat_placeholder:
             for message in st.session_state.messages:
-                role = "user" if isinstance(message, HumanMessage) else "assistant"
-                with st.chat_message(role):
-                    st.markdown(message.content)
+                if isinstance(message, (HumanMessage, AIMessage)) and message.content:
+                    role = "user" if isinstance(message, HumanMessage) else "assistant"
+                    with st.chat_message(role):
+                        st.markdown(message.content)
 
-        if prompt := st.chat_input("Talk to your agent...", key="chat_input"):
+        # Chat input
+        if prompt := st.chat_input("What do you want to learn today? (e.g. 'Teach me Docker')"):
             st.session_state.messages.append(HumanMessage(content=prompt))
-            with chat_container:
+            with chat_placeholder:
                 with st.chat_message("user"):
                     st.markdown(prompt)
 
             try:
-                with st.spinner("Processing..."):
-                    new_messages = st.session_state.agent.chat(st.session_state.messages)
-                    for msg in new_messages:
+                with st.spinner("Preparing lesson..."):
+                    new_msgs = st.session_state.agent.chat(prompt)
+                    
+                    for msg in new_msgs:
                         if isinstance(msg, AIMessage) and msg.content:
                             st.session_state.messages.append(msg)
-                            with chat_container:
+                            with chat_placeholder:
                                 with st.chat_message("assistant"):
                                     st.markdown(msg.content)
-            except Exception as e:
-                st.error(f"Chat Error: {e}")
-
-    with tab2:
-        st.subheader("Structured Study System")
-        
-        col_settings, col_display = st.columns([1, 2])
-        
-        with col_settings:
-            st.info("Configure your quiz here")
-            topic = st.text_input("Topic", placeholder="e.g. Kubernetes, Photosynthesis, Python")
-            difficulty = st.selectbox("Difficulty Level", ["Easy", "Medium", "Hard"])
-            num_questions = st.slider("Number of Questions", 1, 10, 5)
-            
-            if st.button("Generate Quiz 🚀", use_container_width=True):
-                if not topic:
-                    st.warning("Please enter a topic first!")
-                else:
-                    try:
-                        with st.spinner("Generating specialized questions..."):
-                            questions = st.session_state.agent.generate_quiz(topic, num_questions, difficulty)
-                            st.session_state.quiz_data = questions
-                            st.session_state.quiz_submitted = False
-                            st.rerun()
-                    except Exception as e:
-                        st.error(f"Generation Error: {e}")
-
-        with col_display:
-            if st.session_state.quiz_data:
-                st.success(f"Generated {len(st.session_state.quiz_data)} questions on **{topic if topic else 'requested topic'}**")
-                
-                score = 0
-                user_answers = {}
-                
-                with st.form("structured_quiz"):
-                    for i, q in enumerate(st.session_state.quiz_data):
-                        st.write(f"**Question {i+1}:** {q.question}")
-                        user_answers[i] = st.radio(f"Select an option for Q{i+1}", q.options, key=f"quiz_q_{i}")
-                        st.divider()
-                    
-                    submitted = st.form_submit_button("Submit Quiz ✅")
-                    if submitted:
-                        st.session_state.quiz_submitted = True
-                        for i, q in enumerate(st.session_state.quiz_data):
-                            if user_answers[i] == q.correct_answer:
-                                score += 1
                         
-                        st.session_state.last_score = score
+                        elif msg.type == "tool":
+                            # Check for quiz tool output
+                            if isinstance(msg.content, str) and msg.content.startswith("{"):
+                                try:
+                                    data = json.loads(msg.content)
+                                    if data.get("type") == "quiz_data":
+                                        st.session_state.active_quiz = data
+                                        st.toast("New Quiz Generated!", icon="📝")
+                                except:
+                                    pass
+            except Exception as e:
+                st.error(f"Tutor Error: {e}")
+
+    with col_study:
+        st.subheader("📝 Study Center")
+        
+        if st.session_state.active_quiz:
+            quiz = st.session_state.active_quiz
+            st.info(f"**Topic: {quiz['topic']}**")
+            
+            score = 0
+            user_answers = {}
+            
+            with st.form("study_center_quiz"):
+                for i, q in enumerate(quiz['questions']):
+                    st.write(f"**Q{i+1}: {q['question']}**")
+                    user_answers[i] = st.radio(f"Options for Q{i+1}", q['options'], key=f"study_q_{i}")
+                    st.divider()
                 
-                if st.session_state.get("quiz_submitted"):
-                    total = len(st.session_state.quiz_data)
-                    percentage = (st.session_state.last_score / total) * 100
+                submitted = st.form_submit_button("Submit Assessment")
+                if submitted:
+                    for i, q in enumerate(quiz['questions']):
+                        if user_answers[i] == q['correct_answer']:
+                            score += 1
                     
-                    st.metric("Final Score", f"{st.session_state.last_score} / {total}", f"{percentage}%")
+                    total = len(quiz['questions'])
+                    st.session_state.last_score = f"{score}/{total}"
                     
-                    if percentage == 100:
+                    if score == total:
+                        st.success(f"Amazing! Perfect score: {st.session_state.last_score}")
                         st.balloons()
-                        st.success("Perfect Score! You're a master.")
-                    elif percentage >= 70:
-                        st.success("Great job! You have a solid understanding.")
                     else:
-                        st.warning("Keep studying! You'll get there.")
-                    
-                    if st.button("Clear Quiz"):
-                        st.session_state.quiz_data = None
-                        st.rerun()
-            else:
-                st.info("Your generated quiz will appear here. Set the topic in the left pane and click Generate.")
+                        st.warning(f"Good effort! Score: {st.session_state.last_score}")
+                        st.info("Check back with the tutor to clarify any doubts.")
+            
+            if st.button("Finish Review"):
+                st.session_state.active_quiz = None
+                st.rerun()
+        else:
+            st.markdown("""
+            ### How it works:
+            1. **Ask** the tutor to teach you a topic.
+            2. **Learn** from the explanation.
+            3. **Test** your knowledge! The tutor will automatically generate a quiz here once the lesson is done.
+            """)
+            st.image("https://img.freepik.com/free-vector/learning-concept-illustration_114360-1100.jpg", use_container_width=True)
 
     # Sidebar
     with st.sidebar:
-        st.header("⚙️ System Controls")
-        if st.button("Reset Session Memory"):
+        st.header("⚙️ Lesson Controls")
+        if st.button("Reset Learning Session"):
             st.session_state.messages = []
-            st.session_state.quiz_data = None
+            st.session_state.active_quiz = None
             st.rerun()
+        
         st.markdown("---")
-        st.write("Using Latest LangChain Agents & Groq (Llama 3.1)")
+        st.markdown("### 💡 Tips")
+        st.write("- Ask for 'more details' if a topic is hard.")
+        st.write("- Try 'advanced' difficulty for a challenge.")
 
 if __name__ == "__main__":
     main()

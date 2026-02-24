@@ -4,32 +4,32 @@ from typing import List
 from pydantic import BaseModel
 from src.models.schemas import MCQQuestion
 from src.llm.groq_client import get_groq_llm
+from src.prompts.templates import QUIZ_GENERATION_PROMPT
 
 @tool
-def generate_study_quiz(topic: str, num_questions: int = 5, difficulty: str = "medium"):
+def generate_study_quiz(topic: str):
     """
-    Generate a highly structured MCQ quiz on a specific topic.
-    Returns a list of question objects with options and correct answers.
+    ALWAYS call this tool after teaching a topic. 
+    It generates a structured MCQ quiz for the 'Study Center' UI.
     """
-    llm = get_groq_llm()
-    
-    SYSTEM_PROMPT = f"""You are a technical quiz generator. 
-    Generate exactly {num_questions} {difficulty} MCQs about {topic}.
-    Each question must have exactly 4 options and one correct_answer.
-    """
-
-    class QuizResponse(BaseModel):
-        questions: List[MCQQuestion]
-
-    # Use with_structured_output for reliable JSON generation
-    structured_llm = llm.with_structured_output(QuizResponse)
-    
     try:
+        llm = get_groq_llm()
+        
+        class QuizResponse(BaseModel):
+            questions: List[MCQQuestion]
+
+        # Simplified for maximum reliability
+        structured_llm = llm.with_structured_output(QuizResponse)
+        
         response = structured_llm.invoke([
-            ("system", SYSTEM_PROMPT),
-            ("user", f"Generate {num_questions} questions about {topic}.")
+            ("system", QUIZ_GENERATION_PROMPT),
+            ("user", f"Topic: {topic}")
         ])
         
-        return json.dumps([q.model_dump() for q in response.questions])
+        return json.dumps({
+            "type": "quiz_data",
+            "topic": topic,
+            "questions": [q.model_dump() for q in response.questions]
+        })
     except Exception as e:
-        return f"Error creating quiz: {str(e)}"
+        return f"Tool Error: {str(e)}"

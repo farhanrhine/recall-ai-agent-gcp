@@ -1,36 +1,35 @@
 from langchain.agents import create_agent
+from langgraph.checkpoint.memory import InMemorySaver
 from src.llm.groq_client import get_groq_llm
-from src.prompts.templates import AGENT_SYSTEM_PROMPT, QUIZ_SYSTEM_PROMPT
-from src.models.schemas import MCQQuestion
-from typing import List
-from pydantic import BaseModel
-import json
+from src.prompts.templates import STUDY_AGENT_SYSTEM_PROMPT
+from src.agent.tools import generate_study_quiz
+from src.common.logger import get_logger
 
 class CompanionAgent:
     def __init__(self):
         self.llm = get_groq_llm()
-    
-    def chat(self, messages: list):
-        """General conversational agent."""
-        agent = create_agent(
+        self.logger = get_logger(self.__class__.__name__)
+        self.checkpointer = InMemorySaver()
+        self.tools = [generate_study_quiz]
+        
+        self.agent = create_agent(
             model=self.llm,
-            system_prompt=AGENT_SYSTEM_PROMPT
+            tools=self.tools,
+            system_prompt=STUDY_AGENT_SYSTEM_PROMPT,
+            checkpointer=self.checkpointer
         )
-        response = agent.invoke({"messages": messages})
-        return response["messages"][len(messages):]
 
-    def generate_quiz(self, topic: str, num_questions: int, difficulty: str):
-        """Structured quiz generator using the latest agentic patterns."""
+    def chat(self, message: str, thread_id: str = "study_session"):
+        config = {"configurable": {"thread_id": thread_id}}
         
-        class QuizResponse(BaseModel):
-            questions: List[MCQQuestion]
+        # Get count of messages before invocation
+        state = self.agent.get_state(config)
+        previous_msg_count = len(state.values.get("messages", [])) if state.values else 0
 
-        # Use structured output for reliability
-        structured_llm = self.llm.with_structured_output(QuizResponse)
+        response = self.agent.invoke(
+            {"messages": [{"role": "user", "content": message}]},
+            config=config
+        )
         
-        response = structured_llm.invoke([
-            ("system", QUIZ_SYSTEM_PROMPT),
-            ("user", f"Generate a {difficulty} quiz with {num_questions} questions about {topic}.")
-        ])
-        
-        return response.questions
+        # Return all new messages (AI responses and tool outputs)
+        return response["messages"][previous_msg_count:]
