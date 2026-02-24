@@ -3,52 +3,55 @@ from src.prompts.templates import STUDY_AGENT_SYSTEM_PROMPT, QUIZ_GENERATION_PRO
 from src.models.schemas import MCQQuestion
 import json
 import re
-from langchain_core.messages import SystemMessage
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 
 class CompanionAgent:
     def __init__(self):
         self.llm = get_groq_llm()
     
     def chat(self, messages: list):
-        """Pure conversational chat. No tool-calling to avoid 400 errors."""
-        # Ensure we are just using the base model for chat
+        """Conversational chat focused on teaching."""
         history = [SystemMessage(content=STUDY_AGENT_SYSTEM_PROMPT)] + messages
         return self.llm.invoke(history)
 
-    def generate_quiz_data(self, topic: str):
+    def generate_quiz_from_history(self, history: list):
         """
-        Generates quiz data using raw JSON prompting. 
-        This is the most stable way to get results from Groq.
+        Generates a quiz based on what was actually discussed in the chat history.
+        Ensures the quiz is relevant and doesn't hallucinate outside the taught context.
         """
-        prompt = f"""{QUIZ_GENERATION_PROMPT}
-        Topic: {topic}
+        # Convert message objects to a readable string for the LLM
+        context_str = ""
+        for m in history[-4:]: # Use the last few messages for immediate context
+            role = "User" if isinstance(m, HumanMessage) else "Tutor"
+            context_str += f"{role}: {m.content}\n"
 
-        Return ONLY a JSON object with this structure:
+        prompt = f"""{QUIZ_GENERATION_PROMPT}
+
+        ### CONVERSATION HISTORY:
+        {context_str}
+
+        Return ONLY a JSON object:
         {{
             "questions": [
                 {{
-                    "question": "Question text?",
-                    "options": ["A", "B", "C", "D"],
-                    "correct_answer": "Correct Option"
+                    "question": "text",
+                    "options": ["...", "...", "...", "..."],
+                    "correct_answer": "..."
                 }}
             ]
         }}
         """
         
-        # Invoke without structured_output to avoid tool-use errors
         response = self.llm.invoke(prompt)
         text = response.content
 
         try:
-            # Extract JSON using regex in case of conversational prefix/suffix
             json_match = re.search(r"\{.*\}", text, re.DOTALL)
             if json_match:
                 data = json.loads(json_match.group())
                 return {
                     "type": "quiz_data",
-                    "topic": topic,
                     "questions": data["questions"]
                 }
         except Exception as e:
-            # Fallback/Debug
             return {"type": "error", "message": f"Parsing failed: {str(e)}", "raw": text}
