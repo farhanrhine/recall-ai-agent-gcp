@@ -99,25 +99,35 @@ def main():
             with st.form("current_lesson_quiz"):
                 for i, q in enumerate(quiz['questions']):
                     st.write(f"**Q{i+1}: {q['question']}**")
-                    user_answers[i] = st.radio(f"Options for Q{i+1}", q['options'], key=f"study_q_{i}")
+                    # Set index=None so no option is pre-selected
+                    user_answers[i] = st.radio(f"Options for Q{i+1}", q['options'], key=f"study_q_{i}", index=None)
                     
                     if st.session_state.get("quiz_submitted"):
-                        if user_answers[i].strip() == q['correct_answer'].strip():
+                        # Use case-insensitive stripped comparison, handling None
+                        user_ans = (user_answers[i] or "").strip().lower()
+                        correct_ans = q['correct_answer'].strip().lower()
+                        if user_ans == correct_ans:
                             st.success(f"Correct!")
                         else:
                             st.error(f"Incorrect. Correct answer: {q['correct_answer']}")
                     st.divider()
                 
-                if not st.session_state.get("quiz_submitted"):
-                    if st.form_submit_button("Submit Assessment"):
+                # Submit button must ALWAYS be rendered within the form
+                submitted = st.form_submit_button("Submit Assessment", disabled=st.session_state.get("quiz_submitted", False))
+                if submitted:
+                    # Optional: check if all answered
+                    if any(a is None for a in user_answers.values()):
+                        st.warning("Please answer all questions before submitting.")
+                    else:
                         st.session_state.quiz_submitted = True
+                        correct_count = 0
                         for i, q in enumerate(quiz['questions']):
-                            if user_answers[i].strip() == q['correct_answer'].strip():
-                                score += 1
+                            user_ans = (user_answers[i] or "").strip().lower()
+                            if user_ans == q['correct_answer'].strip().lower():
+                                correct_count += 1
                         
-                        total = len(quiz['questions'])
-                        st.session_state.last_score_val = score
-                        st.session_state.last_total_val = total
+                        st.session_state.last_score_val = correct_count
+                        st.session_state.last_total_val = len(quiz['questions'])
                         st.rerun()
 
             if st.session_state.get("quiz_submitted"):
@@ -135,7 +145,7 @@ def main():
                     st.rerun()
         else:
             st.info("Your assessments based on what the tutor teaches will appear here.")
-            st.image("https://img.freepik.com/free-vector/knowledge-concept-illustration_114360-2646.jpg", use_container_width=True)
+            st.image("https://img.freepik.com/free-vector/knowledge-concept-illustration_114360-2646.jpg", width='stretch')
 
     with st.sidebar:
         st.header("Admin")
