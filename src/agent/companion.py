@@ -20,16 +20,21 @@ class CompanionAgent:
         )
 
     def chat(self, message: str, thread_id: str = "study_session"):
-        config = {"configurable": {"thread_id": thread_id}}
-        
-        # Get count of messages before invocation
-        state = self.agent.get_state(config)
-        previous_msg_count = len(state.values.get("messages", [])) if state.values else 0
+        try:
+            config = {"configurable": {"thread_id": thread_id}}
+            
+            # Get count of messages before invocation
+            state = self.agent.get_state(config)
+            previous_msg_count = len(state.values.get("messages", [])) if state.values else 0
 
-        response = self.agent.invoke(
-            {"messages": [{"role": "user", "content": message}]},
-            config=config
-        )
-        
-        # Return all new messages (AI responses and tool outputs)
-        return response["messages"][previous_msg_count:]
+            response = self.agent.invoke(
+                {"messages": [{"role": "user", "content": message}]},
+                config=config
+            )
+            
+            # Return all new messages
+            return response["messages"][previous_msg_count:]
+        except Exception as e:
+            # If the tool call failed during the agent's turn, we catch it here
+            self.logger.error(f"Agent turn failed: {e}")
+            raise e
