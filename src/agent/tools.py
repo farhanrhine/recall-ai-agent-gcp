@@ -1,44 +1,9 @@
 from langchain_core.tools import tool
 import json
-import os
-from typing import List, Optional
+from typing import List
 from pydantic import BaseModel
-from src.models.schemas import MCQQuestion, FillBlankQuestion
+from src.models.schemas import MCQQuestion
 from src.llm.groq_client import get_groq_llm
-from langchain.agents import create_agent
-from langchain.agents.structured_output import ToolStrategy
-
-MEMORY_FILE = "user_profile.json"
-
-@tool
-def save_user_detail(detail_key: str, value: str):
-    """Save a specific detail about the user (e.g., 'goal', 'stressor', 'hobby', 'expertise')."""
-    profile = {}
-    if os.path.exists(MEMORY_FILE):
-        try:
-            with open(MEMORY_FILE, "r") as f:
-                profile = json.load(f)
-        except:
-            profile = {}
-    
-    profile[detail_key] = value
-    
-    with open(MEMORY_FILE, "w") as f:
-        json.dump(profile, f, indent=4)
-    
-    return f"Successfully saved {detail_key}."
-
-@tool
-def get_user_profile():
-    """Retrieve the entire saved user profile. Use this to personalize quizzes and advice."""
-    if not os.path.exists(MEMORY_FILE):
-        return "No profile saved yet."
-    
-    try:
-        with open(MEMORY_FILE, "r") as f:
-            return json.dumps(json.load(f), indent=2)
-    except:
-        return "Error reading profile."
 
 @tool
 def generate_study_quiz(topic: str, num_questions: int = 5, difficulty: str = "medium"):
@@ -56,7 +21,7 @@ def generate_study_quiz(topic: str, num_questions: int = 5, difficulty: str = "m
     class QuizResponse(BaseModel):
         questions: List[MCQQuestion]
 
-    # Use with_structured_output for more reliable JSON generation
+    # Use with_structured_output for reliable JSON generation
     structured_llm = llm.with_structured_output(QuizResponse)
     
     try:
