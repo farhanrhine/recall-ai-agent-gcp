@@ -1,6 +1,6 @@
-# Intelligent AI Tutor | SFA Pro 🎓
+# Recall AI Agent | SFA Pro 🎓
 
-A high-performance, minimalist AI study agent built with the **Single-File Architecture (SFA)** philosophy. This project rejects complex frontend frameworks in favor of ultra-fast, zero-dependency vanilla HTML/JS paired with a robust FastAPI-LangChain backend.
+A high-performance, minimalist AI study agent built with the **Single-File Architecture (SFA)** philosophy. This project rejects complex frontend frameworks in favor of ultra-fast, zero-dependency vanilla HTML/JS paired with a robust **FastAPI-LangChain** backend.
 
 ## 🧬 Design Philosophy: SFA
 
@@ -8,7 +8,8 @@ Inspired by the engineering simplicity advocated by developers like Simon Willis
 
 - **LLM-Friendly**: Pure HTML/Javascript is remarkably easy for AI to assist with and debug.
 - **Ultra-Lightweight**: No heavy JS bundles or build steps.
-- **Portability**: One file contains the entire UI, logic, and styling.
+- **Portability**: One file (`index.html`) contains the entire UI, logic, and styling.
+- **FastAPI Backend**: A high-performance Python backend serving the SFA frontend.
 
 ## 🧠 Core Features
 
@@ -25,6 +26,7 @@ Inspired by the engineering simplicity advocated by developers like Simon Willis
 
 - Python 3.12+
 - A Groq API Key (saved in `.env`)
+- `uv` (Fast Python package manager)
 
 ### 2. Installation
 
@@ -36,17 +38,29 @@ uv sync
 ### 3. Running the App
 
 ```bash
+# Run the FastAPI server
 uv run python main.py
 ```
 
 After starting, open your browser and go to:
 **[http://localhost:8080](http://localhost:8080)**
 
+## 🐳 Docker Deployment
+
+```bash
+# Build the image
+docker build -t recall-ai-agent:latest .
+
+# Run the container
+docker run -p 8080:8080 --env-file .env recall-ai-agent:latest
+```
+
 ## 🛠️ Tech Stack
 
 - **Backend**: FastAPI, LangChain, Groq (LLaMA-3)
 - **Frontend**: Vanilla HTML5, CSS3, JavaScript (ES6+)
-- **Libraries**: `marked.js` (Markdown), `highlight.js` (Syntax Highlighting)
+- **Package Management**: `uv`
+- **Infrastructure**: Docker, Kubernetes (Minikube), Jenkins, Argo CD
 
 ---
 *Built with focus on simplicity, speed, and engineering pragmatism.*

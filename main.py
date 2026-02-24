@@ -13,7 +13,7 @@ load_dotenv()
 # Ensure we use UTF-8 for everything
 os.environ["PYTHONIOENCODING"] = "utf-8"
 
-app = FastAPI(title="AI Tutor - SFA Pro")
+app = FastAPI(title="Recall AI Agent - SFA Pro")
 agent = CompanionAgent()
 
 class ChatMessage(BaseModel):

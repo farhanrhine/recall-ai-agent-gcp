@@ -1,17 +1,17 @@
 # ==============================================================================
-# DOCKERFILE - AI Tutor SFA Pro
+# DOCKERFILE - Recall AI Agent
 # ==============================================================================
 # This Dockerfile builds a container for the FastAPI/SFA Pro application.
 #
 # BUILD COMMAND:
-#   docker build -t studybuddy:v1 .
+#   docker build -t recall-ai-agent:v1 .
 #
 # RUN COMMAND:
-#   docker run -p 8080:8080 --env-file .env studybuddy:v1
+#   docker run -p 8080:8080 --env-file .env recall-ai-agent:v1
 #
 # FOR KUBERNETES:
-#   docker build -t dataguru97/studybuddy:v15 .
-#   docker push dataguru97/studybuddy:v15
+#   docker build -t farhanrhine/recall-ai-agent:latest .
+#   docker push farhanrhine/recall-ai-agent:latest
 # ==============================================================================
 
 # Use Python 3.12 slim image (matches pyproject.toml requires-python >= 3.12)
