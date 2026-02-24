@@ -58,8 +58,10 @@ async def get_index():
 
 def start():
     """Entry point for the application."""
-    print("🚀 Starting Recall AI Agent SFA Pro on http://0.0.0.0:8080")
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    # Use APP_HOST env var for Docker/cloud, default to localhost for local dev
+    app_host = os.getenv("APP_HOST", "127.0.0.1")
+    print(f"🚀 Starting Recall AI Agent SFA Pro on http://{app_host}:8080")
+    uvicorn.run(app, host=app_host, port=8080)
 
 if __name__ == "__main__":
     start()

@@ -53,6 +53,9 @@ COPY . .
 # Expose port 8080 (FastAPI default in main.py)
 EXPOSE 8080
 
+# Set app to listen on all interfaces for Docker/Kubernetes
+ENV APP_HOST=0.0.0.0
+
 # Health check - Kubernetes/Docker can use this to check if app is alive
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD curl -f http://localhost:8080/ || exit 1

@@ -37,6 +37,8 @@ spec:
           initialDelaySeconds: 5
           periodSeconds: 10
         env:
+        - name: APP_HOST
+          value: "0.0.0.0"
         - name: GROQ_API_KEY
           valueFrom:
             secretKeyRef:
