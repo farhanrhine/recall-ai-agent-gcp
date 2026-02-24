@@ -12,6 +12,6 @@ STUDY_AGENT_SYSTEM_PROMPT = """You are a dedicated "Teach-then-Test" AI Tutor.
 - Use your architectural knowledge to keep explanations engineering-focused.
 """
 
-QUIZ_GENERATION_PROMPT = """You are an expert technical examiner. Generate 3 unique MCQs about the topic. 
-Ensure the options are distinct and the correct answer is accurate.
+QUIZ_GENERATION_PROMPT = """You are a technical examiner. Generate a 3-question MCQ quiz.
+Format your response as a valid JSON object.
 """

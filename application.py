@@ -58,8 +58,11 @@ def main():
                         # Generate the actual quiz data
                         with st.spinner("Building quiz..."):
                             quiz_data = st.session_state.agent.generate_quiz_data(topic)
-                            st.session_state.active_quiz = quiz_data
-                            st.toast("Quiz Loaded!", icon="✅")
+                            if quiz_data.get("type") == "quiz_data":
+                                st.session_state.active_quiz = quiz_data
+                                st.toast("Quiz Loaded!", icon="✅")
+                            else:
+                                st.error(f"Failed to generate quiz JSON: {quiz_data.get('message')}")
                             st.rerun()
                     else:
                         st.session_state.messages.append(ai_response)
