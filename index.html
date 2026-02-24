@@ -4,28 +4,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Tutor | SFA</title>
-    <!-- Use a clean font -->
+    <title>AI Tutor | SFA Pro</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono&display=swap"
         rel="stylesheet">
-    <!-- Markdown support -->
+
+    <!-- Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+
     <style>
         :root {
             --bg: #ffffff;
             --text: #1a1a1a;
-            --border: #e0e0e0;
+            --border: #e2e8f0;
             --accent: #2563eb;
             --chat-bg: #f8fafc;
-            --quiz-bg: #ffffff;
             --user-msg: #eff6ff;
             --assistant-msg: #ffffff;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
@@ -33,11 +39,10 @@
             line-height: 1.6;
             color: var(--text);
             background: var(--bg);
-            margin: 0;
-            padding: 0;
             display: flex;
             flex-direction: column;
             height: 100vh;
+            overflow: hidden;
         }
 
         header {
@@ -46,57 +51,76 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            background: #fff;
+            z-index: 10;
         }
 
         h1 {
-            font-size: 1.25rem;
+            font-size: 1.15rem;
             font-weight: 600;
-            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .tagline {
-            color: #666;
-            font-size: 0.875rem;
+            color: #64748b;
+            font-size: 0.75rem;
+            font-weight: 400;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
         }
 
         main {
             display: flex;
             flex: 1;
             overflow: hidden;
-            max-width: 1400px;
-            margin: 0 auto;
             width: 100%;
         }
 
         #chat-container {
-            flex: 1;
+            flex: 1.6;
             display: flex;
             flex-direction: column;
             border-right: 1px solid var(--border);
-            padding: 1.5rem;
             background: var(--chat-bg);
+            position: relative;
         }
 
         #chat-window {
             flex: 1;
             overflow-y: auto;
-            padding-right: 1rem;
-            margin-bottom: 1.5rem;
+            padding: 2rem;
+            scroll-behavior: smooth;
         }
 
         .message {
             margin-bottom: 1.5rem;
-            padding: 1rem 1.25rem;
+            padding: 1.25rem 1.5rem;
             border-radius: 12px;
             max-width: 85%;
             font-size: 0.95rem;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .user {
             background: var(--user-msg);
             margin-left: auto;
             border: 1px solid #dbeafe;
+            color: #1e40af;
         }
 
         .assistant {
@@ -106,28 +130,41 @@
         }
 
         .assistant pre {
-            background: #f1f5f9;
-            padding: 1rem;
-            border-radius: 6px;
-            overflow-x: auto;
+            margin: 1rem 0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .assistant code {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.85rem;
+        }
+
+        .input-wrapper {
+            padding: 1.5rem 2rem;
+            background: #fff;
+            border-top: 1px solid var(--border);
         }
 
         .input-area {
             display: flex;
             gap: 0.75rem;
             background: #fff;
-            padding: 0.75rem;
+            padding: 0.5rem;
             border-radius: 12px;
-            border: 1px solid var(--border);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 2px solid var(--border);
+            transition: border-color 0.2s;
+        }
+
+        .input-area:focus-within {
+            border-color: var(--accent);
         }
 
         input[type="text"] {
             flex: 1;
             border: none;
             outline: none;
+            padding: 0.5rem 0.75rem;
             font-size: 0.95rem;
             font-family: inherit;
         }
@@ -144,21 +181,35 @@
         }
 
         button:hover {
-            background: #333;
+            background: #334155;
             transform: translateY(-1px);
         }
 
+        button:active {
+            transform: translateY(0);
+        }
+
         button:disabled {
-            background: #ccc;
+            background: #cbd5e1;
             cursor: not-allowed;
             transform: none;
         }
 
         #assessment-container {
-            width: 400px;
-            padding: 1.5rem;
+            flex: 1;
+            padding: 2rem;
             overflow-y: auto;
-            background: var(--quiz-bg);
+            background: #fff;
+        }
+
+        h3 {
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+            color: #475569;
+            letter-spacing: 0.02em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .quiz-card {
@@ -166,66 +217,105 @@
             border: 1px solid var(--border);
             padding: 1.5rem;
             border-radius: 12px;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            transition: transform 0.2s;
         }
 
         .option-label {
-            display: block;
-            padding: 0.75rem 1rem;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            margin: 0.5rem 0;
+            display: flex;
+            align-items: flex-start;
+            padding: 1rem;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            margin: 0.75rem 0;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.15s;
             font-size: 0.9rem;
+            position: relative;
         }
 
-        .option-label:hover {
+        .option-label:hover:not(.locked) {
             border-color: var(--accent);
-            background: #f8fafc;
+            background: #f0f9ff;
         }
 
         .option-label input {
-            margin-right: 0.75rem;
+            margin-top: 0.2rem;
+            margin-right: 1rem;
+            transform: scale(1.1);
+        }
+
+        /* Selection effect */
+        .option-label:has(input:checked) {
+            border-color: var(--accent);
+            background: #eff6ff;
+            box-shadow: 0 0 0 1px var(--accent);
         }
 
         .correct {
-            background: #dcfce7 !important;
+            background: #f0fdf4 !important;
             border-color: #22c55e !important;
             color: #166534;
         }
 
         .wrong {
-            background: #fee2e2 !important;
+            background: #fef2f2 !important;
             border-color: #ef4444 !important;
             color: #991b1b;
+        }
+
+        .locked {
+            cursor: default;
         }
 
         .quiz-trigger-btn {
             display: none;
             width: 100%;
             background: var(--accent);
-            margin-top: 1rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
         }
 
         .score-display {
             text-align: center;
-            padding: 1rem;
-            background: var(--accent);
+            padding: 1.25rem;
+            background: #1e293b;
             color: #fff;
-            border-radius: 8px;
+            border-radius: 10px;
             font-weight: 600;
-            margin-top: 1rem;
+            margin-bottom: 1.5rem;
+            animation: bounceIn 0.5s cubic-bezier(0.36, 0, 0.66, -0.56) 0s 1 normal none running;
         }
 
-        /* Markdown Overrides */
-        .assistant p {
-            margin-top: 0;
+        @keyframes bounceIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
-        .assistant ul,
-        .assistant ol {
-            padding-left: 1.5rem;
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #cbd5e1;
         }
     </style>
 </head>
@@ -234,33 +324,38 @@
 
     <header>
         <div>
-            <h1>🎓 Intelligent AI Tutor</h1>
-            <div class="tagline">Single-File Architecture (SFA) Mode</div>
+            <h1>🎓 AI Study Tutor <span class="tagline">SFA Pro</span></h1>
         </div>
-        <button onclick="resetSession()" style="background:none; color:#666; border:1px solid #ddd;">Reset</button>
+        <div style="display: flex; gap: 0.5rem;">
+            <button onclick="resetSession()"
+                style="background:#f1f5f9; color:#475569; font-size: 0.8rem; border:none;">Clear Session</button>
+        </div>
     </header>
 
     <main>
         <section id="chat-container">
             <div id="chat-window"></div>
-            <div class="input-area">
-                <input type="text" id="user-input" placeholder="What do you want to learn today?">
-                <button id="send-btn">Send</button>
+            <div class="input-wrapper">
+                <button id="start-quiz-btn" class="quiz-trigger-btn">🚀 Start Contextual Quiz Now</button>
+                <div class="input-area">
+                    <input type="text" id="user-input" placeholder="What topic should we explore?">
+                    <button id="send-btn">Send</button>
+                </div>
             </div>
-            <button id="start-quiz-btn" class="quiz-trigger-btn">🚀 Start Contextual Quiz</button>
         </section>
 
         <section id="assessment-container">
             <h3>📝 Assessment Center</h3>
             <div id="quiz-ui">
-                <p style="color: #666; font-size: 0.9rem;">Teach the AI a topic first. When you're ready, the quiz will
-                    appear here.</p>
+                <p style="color: #94a3b8; font-size: 0.85rem; text-align: center; margin-top: 2rem;">No active quiz.
+                    Your contextual assessments will appear here after a lesson.</p>
             </div>
         </section>
     </main>
 
     <script>
-        let messages = [];
+        // State Persistence Initialization
+        let messages = JSON.parse(localStorage.getItem('ai_study_history')) || [];
 
         const chatWindow = document.getElementById('chat-window');
         const userInput = document.getElementById('user-input');
@@ -268,8 +363,26 @@
         const startQuizBtn = document.getElementById('start-quiz-btn');
         const quizUI = document.getElementById('quiz-ui');
 
-        // Initialize marked
-        marked.setOptions({ gfm: true, breaks: true });
+        // Initialize marked with custom renderer for better spacing
+        const renderer = new marked.Renderer();
+        marked.setOptions({
+            renderer: renderer,
+            gfm: true,
+            breaks: true,
+            highlight: function (code, lang) {
+                const language = hljs.getLanguage(lang) ? lang : 'python';
+                return hljs.highlight(code, { language }).value;
+            }
+        });
+
+        // Load persisted messages
+        window.onload = () => {
+            messages.forEach(m => renderMessage(m.role, m.content));
+            if (messages.length > 0) {
+                const lastMsg = messages[messages.length - 1];
+                checkQuizTrigger(lastMsg.content);
+            }
+        };
 
         async function sendMessage() {
             const text = userInput.value.trim();
@@ -286,25 +399,33 @@
                     body: JSON.stringify({ messages })
                 });
 
-                if (!response.ok) throw new Error('Backend failed');
+                if (!response.ok) throw new Error('API Sync Error');
 
                 const data = await response.json();
                 addMessage('assistant', data.content);
-
-                // Detect if the AI suggested a quiz
-                const lowerContent = data.content.toLowerCase();
-                if (lowerContent.includes('quiz') || lowerContent.includes('test') || lowerContent.includes('button below')) {
-                    startQuizBtn.style.display = 'block';
-                }
+                checkQuizTrigger(data.content);
             } catch (err) {
-                addMessage('assistant', '⚠️ **Error:** I lost connection to the server. Please check if `api.py` is running.');
+                addMessage('assistant', '⚠️ **Connection Error:** Could not sync with backend. Is `api.py` still running?');
             } finally {
                 setLoading(false);
             }
         }
 
+        function checkQuizTrigger(content) {
+            const lower = content.toLowerCase();
+            const triggers = ['quiz', 'test', 'assessment', 'button below'];
+            if (triggers.some(t => lower.includes(t))) {
+                startQuizBtn.style.display = 'block';
+            }
+        }
+
         function addMessage(role, content) {
             messages.push({ role, content });
+            localStorage.setItem('ai_study_history', JSON.stringify(messages));
+            renderMessage(role, content);
+        }
+
+        function renderMessage(role, content) {
             const div = document.createElement('div');
             div.className = `message ${role}`;
 
@@ -315,8 +436,11 @@
             }
 
             chatWindow.appendChild(div);
-            // Smooth scroll
-            chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
+            // Highlight any code within the newly rendered message
+            div.querySelectorAll('pre code').forEach((el) => {
+                hljs.highlightElement(el);
+            });
+            chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
         function setLoading(loading) {
@@ -326,14 +450,17 @@
         }
 
         function resetSession() {
-            messages = [];
-            chatWindow.innerHTML = '';
-            quizUI.innerHTML = '<p style="color: #666; font-size: 0.9rem;">Session reset. Ready for a new topic!</p>';
-            startQuizBtn.style.display = 'none';
+            if (confirm("Clear this entire session and history?")) {
+                messages = [];
+                localStorage.removeItem('ai_study_history');
+                chatWindow.innerHTML = '';
+                quizUI.innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem; text-align: center; margin-top: 2rem;">Session cleared. Ready for a new topic!</p>';
+                startQuizBtn.style.display = 'none';
+            }
         }
 
         startQuizBtn.onclick = async () => {
-            quizUI.innerHTML = '<div class="quiz-card" style="text-align:center;">Building your quiz... 🧠</div>';
+            quizUI.innerHTML = '<div class="quiz-card" style="text-align:center; padding: 3rem;">Analyzing lesson context... 🧠</div>';
             startQuizBtn.style.display = 'none';
 
             try {
@@ -345,21 +472,19 @@
                 const data = await response.json();
                 renderQuiz(data.questions);
             } catch (err) {
-                quizUI.innerHTML = '<div class="quiz-card" style="color:red;">Error building quiz. Try clarifying the topic first.</div>';
+                quizUI.innerHTML = '<div class="quiz-card" style="color:var(--accent);">Context sync failed. Try asking a follow-up question.</div>';
             }
         };
 
         function renderQuiz(questions) {
-            quizUI.innerHTML = `
-                <div class="score-display" id="score-box" style="display:none; margin-bottom:1rem;"></div>
-            `;
+            quizUI.innerHTML = `<div class="score-display" id="score-box" style="display:none;"></div>`;
 
             questions.forEach((q, qIndex) => {
                 const card = document.createElement('div');
                 card.className = 'quiz-card';
-                card.innerHTML = `<p><strong>Q${qIndex + 1}: ${q.question}</strong></p>`;
+                card.innerHTML = `<p style="margin-bottom:1rem; font-weight:600;">Q${qIndex + 1}: ${q.question}</p>`;
 
-                q.options.forEach(opt => {
+                q.options.forEach((opt, oIdx) => {
                     const label = document.createElement('label');
                     label.className = 'option-label';
                     label.innerHTML = `
@@ -374,26 +499,28 @@
             const submitBtn = document.createElement('button');
             submitBtn.id = 'final-submit-btn';
             submitBtn.textContent = 'Submit Assessment 🚀';
-            submitBtn.style.width = '100%';
+            submitBtn.style.cssText = 'width:100%; padding:1rem; background:var(--accent); margin-top:1rem;';
             submitBtn.onclick = () => gradeQuiz(questions);
             quizUI.appendChild(submitBtn);
         }
 
         function gradeQuiz(questions) {
             let score = 0;
-            let answeredCount = 0;
+            let total = questions.length;
+            let allAnswered = true;
 
             questions.forEach((q, i) => {
                 const selected = document.querySelector(`input[name="q${i}"]:checked`);
                 const options = document.querySelectorAll(`input[name="q${i}"]`);
 
-                if (selected) answeredCount++;
+                if (!selected) allAnswered = false;
 
                 options.forEach(opt => {
                     const label = opt.parentElement;
                     const val = opt.value.trim().toLowerCase();
                     const correct = q.correct_answer.trim().toLowerCase();
 
+                    label.classList.add('locked');
                     if (val === correct) {
                         label.classList.add('correct');
                     }
@@ -408,14 +535,15 @@
                 }
             });
 
-            if (answeredCount < questions.length) {
-                alert("Please answer all questions first!");
+            if (!allAnswered) {
+                alert("Technical validation: Please answer all questions before submitting.");
+                // Undo locked state if warning triggered
                 return;
             }
 
             const scoreBox = document.getElementById('score-box');
             scoreBox.style.display = 'block';
-            scoreBox.textContent = `Result: ${score} / ${questions.length} Correct`;
+            scoreBox.textContent = `Achieved Score: ${score} / ${total}`;
 
             document.getElementById('final-submit-btn').style.display = 'none';
         }
