@@ -1,0 +1,12 @@
+.env
+.git
+.venv
+__pycache__
+*.pyc
+logs/
+.python-version
+.agent/
+.gemini/
+*.md
+!readme.md
+!FULL_DOCUMENTATION.md

@@ -1,63 +1,52 @@
-# 🧘 Personal AI Companion
+# Intelligent AI Tutor | SFA Pro 🎓
 
-A supportive, insightful, and proactive personal AI companion designed to help you navigate your daily life. Built with Python, Streamlit, and the latest LangChain Agents, this companion remembers your goals, preferences, and challenges to provide personalized coaching and support.
+A high-performance, minimalist AI study agent built with the **Single-File Architecture (SFA)** philosophy. This project rejects complex frontend frameworks in favor of ultra-fast, zero-dependency vanilla HTML/JS paired with a robust FastAPI-LangChain backend.
 
-## 🚀 Features
+## 🧬 Design Philosophy: SFA
 
-- **Personalized Onboarding**: The agent gets to know you through a series of thoughtful questions.
-- **Persistent Personal Memory**: Remembers your goals, stressors, and preferences using dedicated memory tools.
-- **Conversational Awareness**: Maintains state across messages using `InMemorySaver`.
-- **Modern AI Infrastructure**: Powered by Groq (Llama 3.1) and managed with **uv**.
-- **GitOps Ready**: Fully automated CI/CD pipeline for Kubernetes deployment.
+Inspired by the engineering simplicity advocated by developers like Simon Willison, this project uses a "Single-File Frontend."
+
+- **LLM-Friendly**: Pure HTML/Javascript is remarkably easy for AI to assist with and debug.
+- **Ultra-Lightweight**: No heavy JS bundles or build steps.
+- **Portability**: One file contains the entire UI, logic, and styling.
+
+## 🧠 Core Features
+
+- **Teach-then-Test Workflow**: The AI focuses on teaching technical topics before suggesting interactive assessments.
+- **Contextual Quizzes**: Quizzes are generated dynamically based *only* on the previous chat history to prevent hallucinations.
+- **Performance UI**:
+  - **Syntax Highlighting**: Beautifully formatted code blocks using `highlight.js`.
+  - **Session Persistence**: Your study progress is saved to `LocalStorage` automatically.
+  - **Premium Interaction**: Responsive, real-time feedback with zero page refreshes.
+
+## 🚀 Getting Started
+
+### 1. Prerequisites
+
+- Python 3.12+
+- A Groq API Key (saved in `.env`)
+
+### 2. Installation
+
+```bash
+# Install dependencies using uv
+uv sync
+```
+
+### 3. Running the App
+
+```bash
+uv run python main.py
+```
+
+After starting, open your browser and go to:
+**[http://localhost:8080](http://localhost:8080)**
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: [Streamlit](https://streamlit.io/)
-- **Agent Framework**: [LangChain](https://www.langchain.com/) (latest `create_agent` patterns)
-- **Memory Management**: LangGraph `InMemorySaver` + Custom JSON-based profile storage
-- **Engine**: [Groq](https://groq.com/) (Llama 3.1 8B)
-- **Orchestration**: Kubernetes
-- **Dependency Management**: [uv](https://github.com/astral-sh/uv)
-
-## 📂 Project Structure
-
-```text
-personal-study-ai-agent/
-│
-├── application.py          # Main Chat UI
-├── src/
-│   ├── agent/             # Companion logic & tools
-│   │   ├── companion.py    # CompanionAgent class
-│   │   └── tools.py       # Memory & side-effect tools
-│   ├── llm/               # model initialization
-│   ├── prompts/           # System & onboarding prompts
-│   └── common/            # Logger & exceptions
-├── Dockerfile              # uv-based container setup
-└── README.md
-```
-
-## 🚦 Getting Started
-
-### Prerequisites
-
-- Python 3.12+
-- Groq API Key in `.env`
-
-### Local Setup
-
-1. **Clone & Sync**:
-
-   ```bash
-   git clone https://github.com/farhanrhine/personal-study-ai-agent.git
-   cd personal-study-ai-agent
-   uv sync
-   ```
-
-2. **Run**:
-
-   ```bash
-   uv run streamlit run application.py
-   ```
+- **Backend**: FastAPI, LangChain, Groq (LLaMA-3)
+- **Frontend**: Vanilla HTML5, CSS3, JavaScript (ES6+)
+- **Libraries**: `marked.js` (Markdown), `highlight.js` (Syntax Highlighting)
 
 ---
-*Helping you find your flow, one conversation at a time.*
+*Built with focus on simplicity, speed, and engineering pragmatism.*
