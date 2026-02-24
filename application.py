@@ -50,13 +50,14 @@ def main():
                         
                         elif msg.type == "tool":
                             # Check if this tool output contains a quiz
-                            try:
-                                data = json.loads(msg.content)
-                                if isinstance(data, list) and len(data) > 0 and "question" in data[0]:
-                                    st.session_state.current_quiz = data
-                                    st.success("New quiz generated! Check the sidebar.")
-                            except:
-                                pass
+                            if msg.content and not msg.content.startswith("Error"):
+                                try:
+                                    data = json.loads(msg.content)
+                                    if isinstance(data, list) and len(data) > 0 and "question" in data[0]:
+                                        st.session_state.current_quiz = data
+                                        st.success("New quiz generated! Check the sidebar.")
+                                except:
+                                    pass
             except Exception as e:
                 st.error(f"Agent Error: {e}")
 

@@ -2,6 +2,7 @@ from langchain_core.tools import tool
 import json
 import os
 from typing import List, Optional
+from pydantic import BaseModel
 from src.models.schemas import MCQQuestion, FillBlankQuestion
 from src.llm.groq_client import get_groq_llm
 from langchain.agents import create_agent
@@ -47,30 +48,23 @@ def generate_study_quiz(topic: str, num_questions: int = 5, difficulty: str = "m
     """
     llm = get_groq_llm()
     
-    # Define a focused prompt for the sub-agent
-    SYSTEM_PROMPT = f"""You are a professional educational content creator. 
-    Your job is to generate a {difficulty} quiz about {topic} with exactly {num_questions} questions.
-    Each question must have exactly 4 options.
+    SYSTEM_PROMPT = f"""You are a technical quiz generator. 
+    Generate exactly {num_questions} {difficulty} MCQs about {topic}.
+    Each question must have exactly 4 options and one correct_answer.
     """
 
-    # We use a dataclass/BaseModel for the response format
-    from pydantic import BaseModel
     class QuizResponse(BaseModel):
         questions: List[MCQQuestion]
 
-    # Create a internal structured agent
-    agent = create_agent(
-        model=llm,
-        system_prompt=SYSTEM_PROMPT,
-        response_format=ToolStrategy(QuizResponse)
-    )
-
-    response = agent.invoke({
-        "messages": [{"role": "user", "content": f"Generate {num_questions} MCQs about {topic}."}]
-    })
-
-    questions = response['structured_response'].questions
+    # Use with_structured_output for more reliable JSON generation
+    structured_llm = llm.with_structured_output(QuizResponse)
     
-    # Store questions in session state for the UI to pick up
-    # In a real tool, we return data that the main agent can present
-    return json.dumps([q.model_dump() for q in questions])
+    try:
+        response = structured_llm.invoke([
+            ("system", SYSTEM_PROMPT),
+            ("user", f"Generate {num_questions} questions about {topic}.")
+        ])
+        
+        return json.dumps([q.model_dump() for q in response.questions])
+    except Exception as e:
+        return f"Error creating quiz: {str(e)}"
