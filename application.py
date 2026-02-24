@@ -100,23 +100,39 @@ def main():
                 for i, q in enumerate(quiz['questions']):
                     st.write(f"**Q{i+1}: {q['question']}**")
                     user_answers[i] = st.radio(f"Options for Q{i+1}", q['options'], key=f"study_q_{i}")
+                    
+                    if st.session_state.get("quiz_submitted"):
+                        if user_answers[i].strip() == q['correct_answer'].strip():
+                            st.success(f"Correct!")
+                        else:
+                            st.error(f"Incorrect. Correct answer: {q['correct_answer']}")
                     st.divider()
                 
-                if st.form_submit_button("Submit Assessment"):
-                    for i, q in enumerate(quiz['questions']):
-                        if user_answers[i] == q['correct_answer']:
-                            score += 1
-                    
-                    total = len(quiz['questions'])
-                    if score == total:
-                        st.success(f"Perfect! {score}/{total}")
-                        st.balloons()
-                    else:
-                        st.warning(f"Result: {score}/{total}. Talk to the tutor to clear doubts!")
-            
-            if st.button("Close Quiz"):
-                st.session_state.active_quiz = None
-                st.rerun()
+                if not st.session_state.get("quiz_submitted"):
+                    if st.form_submit_button("Submit Assessment"):
+                        st.session_state.quiz_submitted = True
+                        for i, q in enumerate(quiz['questions']):
+                            if user_answers[i].strip() == q['correct_answer'].strip():
+                                score += 1
+                        
+                        total = len(quiz['questions'])
+                        st.session_state.last_score_val = score
+                        st.session_state.last_total_val = total
+                        st.rerun()
+
+            if st.session_state.get("quiz_submitted"):
+                score = st.session_state.last_score_val
+                total = st.session_state.last_total_val
+                if score == total:
+                    st.success(f"Perfect! {score}/{total}")
+                    st.balloons()
+                else:
+                    st.warning(f"Result: {score}/{total}. Talk to the tutor to clear doubts!")
+                
+                if st.button("Close Quiz"):
+                    st.session_state.active_quiz = None
+                    st.session_state.quiz_submitted = False
+                    st.rerun()
         else:
             st.info("Your assessments based on what the tutor teaches will appear here.")
             st.image("https://img.freepik.com/free-vector/knowledge-concept-illustration_114360-2646.jpg", use_container_width=True)

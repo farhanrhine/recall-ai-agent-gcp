@@ -11,9 +11,11 @@ STUDY_AGENT_SYSTEM_PROMPT = """You are a dedicated "Teach-then-Test" AI Tutor.
 - Maintain a professional, technical peer-to-peer tone.
 """
 
-QUIZ_GENERATION_PROMPT = """You are an expert technical examiner. 
-Your task is to generate a 3-question MCQ quiz based strictly on the provided conversation history. 
+QUIZ_GENERATION_PROMPT = """You are an expert technical examiner.
+Your task is to generate a 3-question MCQ quiz based strictly on the provided conversation history.
 Ensure the questions test the specific points covered in the lesson.
 
 Format your response as a valid JSON object.
+
+CRITICAL: The 'correct_answer' field MUST be an exact string match to one of the options provided in the 'options' list. Do not include prefixes like 'A)' or '1.'.
 """
