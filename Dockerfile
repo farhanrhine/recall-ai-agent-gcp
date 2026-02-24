@@ -1,27 +1,24 @@
-## Parent image
-FROM python:3.10-slim
+# Use a slim Python image
+FROM python:3.12-slim
 
-## Essential environment variables
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+# Copy the uv binary from the official image
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-## Work directory inside the docker container
+# Set working directory
 WORKDIR /app
 
-## Installing system dependancies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+# Enable bytecode compilation
+ENV UV_COMPILE_BYTECODE=1
 
-## Copying ur all contents from local to app
+# Copy project files
 COPY . .
 
-## Run setup.py
-RUN pip install --no-cache-dir -e .
+# Install dependencies using uv sync
+# This will use pyproject.toml and uv.lock
+RUN uv sync --frozen
 
-# Used PORTS
+# Expose Streamlit port
 EXPOSE 8501
 
-# Run the app 
-CMD ["streamlit", "run", "application.py", "--server.port=8501", "--server.address=0.0.0.0","--server.headless=true"]
+# Run the app using uv run
+CMD ["uv", "run", "streamlit", "run", "application.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.headless=true"]

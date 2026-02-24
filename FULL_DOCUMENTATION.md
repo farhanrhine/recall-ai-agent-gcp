@@ -28,8 +28,6 @@
 - **Connect to the VM**
   - Use the **SSH** option provided to connect to the VM from the browser.
 
-
-
 ### 2. Configure VM Instance
 
 - **Clone your GitHub repo**
@@ -76,7 +74,6 @@
   docker ps                     # No container should be running
   docker ps -a                 # Should show "hello-world" exited container
   ```
-
 
 ### 3. Configure Minikube inside VM
 
@@ -127,7 +124,6 @@
   kubectl cluster-info    # Cluster info
   docker ps               # Minikube container should be running
   ```
-
 
 ### 4. Jenkins Setup
 
@@ -204,17 +200,17 @@
 
   - Log in again after restart
 
-- **Install Python and Pip inside Jenkins Container**
+- **Install Python and uv inside Jenkins Container**
 
   ```bash
   docker exec -it jenkins bash
   apt update -y
-  apt install -y python3
+  apt install -y python3 curl
   python3 --version
   ln -s /usr/bin/python3 /usr/bin/python
-  python --version
-  apt install -y python3-pip
-  apt install -y python3-venv
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+  source $HOME/.cargo/env
+  uv --version
   exit
   ```
 
@@ -428,7 +424,6 @@ git push origin main
 
 ---
 
-
 ### 7. Install and Configure ArgoCD - Part 1
 
 ---
@@ -498,6 +493,7 @@ kubectl edit svc argocd-server -n argocd
 - Replace with: `type: NodePort`
 
 Then press:
+
 - `Ctrl + X` → `Y` → `Enter` (or `:wq!` if in Vim)
 
 Now re-run:
@@ -577,7 +573,7 @@ The `config` file references files like:
 
 We’ll **inline** the actual base64 content instead of using file paths.
 
-##### 🔁 For Each of These 3 Files, Run:
+##### 🔁 For Each of These 3 Files, Run
 
 ```bash
 cat /home/gyrogodnon/.minikube/ca.crt | base64 -w 0; echo
@@ -632,9 +628,11 @@ Click Save ✅
    - **Sample Step**: `kubernetes deploy`
    - **Kubeconfig**: select `kubeconfig` credential
    - **Server URL**: Get from this command:
+
      ```bash
      kubectl cluster-info
      ```
+
      (e.g., `https://192.168.49.2:8443`)
 6. Generate the script
 
@@ -647,7 +645,6 @@ Copy the generated script and paste/save it — you’ll use it in your Jenkinsf
 ---
 
 # 9. Install and Configure ArgoCd - Part 3
-
 
 ### Step 1: Install `kubectl` and ArgoCD CLI on Docker Container
 
@@ -678,17 +675,17 @@ argocd login 34.72.5.170:31704 --username admin --password $(kubectl get secret 
 1. Open **ArgoCD UI** → Go to **Settings** → **Repositories** → **Connect Repo** via HTTPS.
 2. Fill in details:
 
-   * **Type:** git
-   * **Name:** anything you want
-   * **Project:** default
-   * **Repo URL:** `https://github.com/data-guru0/GitOPS-testing.git`
-   * **Username & Password:** Provide GitHub username and token (optional but recommended)
+   - **Type:** git
+   - **Name:** anything you want
+   - **Project:** default
+   - **Repo URL:** `https://github.com/data-guru0/GitOPS-testing.git`
+   - **Username & Password:** Provide GitHub username and token (optional but recommended)
 3. Click **Connect**.
 4. You should see a success message confirming the GitHub repo is connected to ArgoCD.
 
 ---
 
-### Important:
+### Important
 
 ```groovy
 kubectl create secret generic groq-api-secret \
@@ -698,28 +695,28 @@ kubectl create secret generic groq-api-secret \
 
 ### Step 4: Create a New Application in ArgoCD
 
-* Go to **Applications** → Click **New App**.
-* Fill in the form:
+- Go to **Applications** → Click **New App**.
+- Fill in the form:
 
-  * **Name:** Gitops (or any name you prefer)
-  * **Project:** default
-  * **Sync Policy:** Automatic
-  * Tick **Sync Pipeline Resources** and **Self Heal**.
-  * Leave other settings as default.
-  * **Repository URL:** select your connected repo.
-  * **Revision:** `main` (branch)
-  * **Path:** `manifests`
-  * **Cluster URL:** select from dropdown.
-  * **Namespace:** `argocd`
-* Click **Create**.
-* You should see the application status as **Synced** and **Healthy**.
+  - **Name:** Gitops (or any name you prefer)
+  - **Project:** default
+  - **Sync Policy:** Automatic
+  - Tick **Sync Pipeline Resources** and **Self Heal**.
+  - Leave other settings as default.
+  - **Repository URL:** select your connected repo.
+  - **Revision:** `main` (branch)
+  - **Path:** `manifests`
+  - **Cluster URL:** select from dropdown.
+  - **Namespace:** `argocd`
+- Click **Create**.
+- You should see the application status as **Synced** and **Healthy**.
 
 ---
 
 ### Step 5: Modify Jenkinsfile to Sync ArgoCD Application
 
-* In **VS Code**, open your `Jenkinsfile`.
-* In the last stage, add the command to sync the ArgoCD app:
+- In **VS Code**, open your `Jenkinsfile`.
+- In the last stage, add the command to sync the ArgoCD app:
 
 ```groovy
 sh 'argocd app sync gitopsapp'
@@ -727,48 +724,48 @@ sh 'argocd app sync gitopsapp'
 
 > Replace `gitopsapp` with the actual name of your ArgoCD application.
 
-* Push the changes to GitHub.
-* Go to Jenkins and build the pipeline.
-* On success, you will see a success message.
+- Push the changes to GitHub.
+- Go to Jenkins and build the pipeline.
+- On success, you will see a success message.
 
 ---
 
 ### Step 6: Verify ArgoCD Application and Logs
 
-* Open **ArgoCD UI**.
-* Check the application workflow.
-* View logs for each pod to verify deployment.
+- Open **ArgoCD UI**.
+- Check the application workflow.
+- View logs for each pod to verify deployment.
 
 ---
 
 ### Step 7: Access Your Application
 
-* On your VM instance terminal, run:
+- On your VM instance terminal, run:
 
 ```bash
 kubectl get deploy -n argocd
 ```
 
-* You should see your `mlops-app` deployment.
-* Check pods:
+- You should see your `mlops-app` deployment.
+- Check pods:
 
 ```bash
 kubectl get pods -n argocd
 ```
 
-* You should see your pods running.
+- You should see your pods running.
 
 ---
 
 ### Step 8: Allow External Access
 
-* Run the following command to create a tunnel:
+- Run the following command to create a tunnel:
 
 ```bash
 minikube tunnel
 ```
 
-* Open another SSH terminal and run port-forwarding:
+- Open another SSH terminal and run port-forwarding:
 
 ```bash
 kubectl port-forward svc/my-service -n argocd --address 0.0.0.0 9090:80
@@ -778,15 +775,14 @@ kubectl port-forward svc/my-service -n argocd --address 0.0.0.0 9090:80
 
 ### Step 9: Access the Application from Browser
 
-* Copy your VM’s external IP address.
-* Open browser and go to:
+- Copy your VM’s external IP address.
+- Open browser and go to:
 
 ```
 http://<VM_EXTERNAL_IP>:9090
 ```
 
-* You should see your `mlops-app` running successfully!
-
+- You should see your `mlops-app` running successfully!
 
 # 10. Setup Webhooks
 
@@ -835,4 +831,3 @@ http://<VM_EXTERNAL_IP>:9090
 - This completes the full GitOps pipeline successfully and automatically!
 
 ---
-
