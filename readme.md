@@ -58,7 +58,7 @@ docker run -p 8080:8080 --env-file .env farhanrhine/recall-ai-agent-gcp:latest
 ## � Project Structure
 
 ```
-recall-ai-agent/
+recall-ai-agent-gcp/
 ├── index.html                 # Single-file frontend
 ├── main.py                    # FastAPI entry point
 ├── pyproject.toml             # Dependencies (Python 3.12+)
