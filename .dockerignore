@@ -9,4 +9,3 @@ logs/
 .gemini/
 *.md
 !readme.md
-!FULL_DOCUMENTATION.md
