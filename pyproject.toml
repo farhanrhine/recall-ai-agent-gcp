@@ -1,7 +1,7 @@
 [project]
 name = "recall-ai-agent-gcp"
 version = "0.1.0"
-description = "Add your description here"
+description = "A high-performance AI study agent with teach-then-test workflow, powered by FastAPI and LangChain"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

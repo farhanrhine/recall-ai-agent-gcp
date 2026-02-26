@@ -15,6 +15,35 @@ Inspired by the engineering simplicity advocated by developers like Simon Willis
 
 **Inspired by ChatGPT's Study Mode**, but with a powerful twist. While ChatGPT study mode focuses on long-form explanations, Recall AI Agent implements **immediate feedback loops**. After each lesson, you get a **quick quiz on what you just learned**—reinforcing knowledge in real-time and preventing hallucinations by keeping quizzes contextual to your actual conversation history.
 
+## 📊 How It Works
+
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#dbeafe', 'primaryTextColor': '#1e3a5f', 'primaryBorderColor': '#2563eb', 'lineColor': '#3b82f6', 'secondaryColor': '#f0fdf4', 'tertiaryColor': '#fef3c7', 'edgeLabelBackground': '#ffffff'}}}%%
+flowchart TD
+    A(["🎯 User Asks a Question"]):::user --> B["🧠 AI Tutor Explains Concept"]
+    B --> C["💬 AI Suggests: Take a Quiz?"]
+    C --> D["🟢 Start Quiz Button Appears"]
+    D --> E["📡 Quiz Generated from Chat History"]
+    E --> F["📝 3 MCQ Questions Rendered"]
+    F --> G["✅ User Submits Answers"]
+    G --> H["🏆 Score & Feedback Displayed"]
+    H --> I{"🔄 What Next?"}
+    I -->|"New Topic"| A
+    I -->|"Go Deeper"| B
+
+    classDef user fill:#eff6ff,stroke:#2563eb,stroke-width:2px,color:#1e40af
+    classDef ai fill:#f0fdf4,stroke:#22c55e,stroke-width:2px,color:#166534
+    classDef action fill:#fef3c7,stroke:#f59e0b,stroke-width:2px,color:#92400e
+    classDef result fill:#fce7f3,stroke:#ec4899,stroke-width:2px,color:#9d174d
+    classDef decision fill:#e0e7ff,stroke:#6366f1,stroke-width:2px,color:#3730a3
+
+    class A user
+    class B,C ai
+    class D,E,F,G action
+    class H result
+    class I decision
+```
+
 ## 🧠 Core Features
 
 - **Teach-then-Test Workflow**: The AI focuses on teaching technical topics before suggesting interactive assessments.
@@ -59,7 +88,7 @@ docker build -t farhanrhine/recall-ai-agent-gcp:latest .
 docker run -p 8080:8080 --env-file .env farhanrhine/recall-ai-agent-gcp:latest
 ```
 
-## � Project Structure
+## 📂 Project Structure
 
 ```
 recall-ai-agent-gcp/
@@ -101,35 +130,11 @@ recall-ai-agent-gcp/
 - **Orchestration**: Kubernetes (Minikube)
 - **CI/CD**: Jenkins, Argo CD
 
-## � Workflow Diagram
-
-```mermaid
-graph TD
-    A[User Asks Question] --> B[AI Tutor Explains Concept]
-    B --> C[User Satisfaction Check]
-    C -->|More Details| B
-    C -->|Ready| D[Generate Quick Quiz]
-    D --> E[Quiz on Lesson Content]
-    E --> F[User Answers Questions]
-    F --> G[Show Results & Feedback]
-    G --> H{Learn More?}
-    H -->|New Topic| A
-    H -->|Deepen Knowledge| B
-```
-
-## �📋 API Endpoints
+## 📋 API Endpoints
 
 - `POST /api/chat` - Chat with the AI tutor
 - `POST /api/quiz` - Generate contextual quiz from history
 - `GET /` - Serve the frontend
 
-## 🧪 Features
-
-- **Teach-then-Test**: AI teaches concepts before generating quizzes
-- **Context-Aware Quizzes**: Generated from actual chat history
-- **Syntax Highlighting**: Beautiful code blocks with highlight.js
-- **Session Persistence**: LocalStorage-based chat history
-- **Zero Hallucination**: Quizzes stay within taught context
-
 ---
-*Built with focus on simplicity, speed, and engineering pragmatism.*
+*Built by Farhan with focus on simplicity, speed, and engineering pragmatism.*
