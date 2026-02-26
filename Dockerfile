@@ -47,6 +47,15 @@ COPY uv.lock .
 # - Using --frozen to ensure exact versions from uv.lock are installed
 RUN uv sync --frozen
 
+# Add virtual environment to PATH (production optimization)
+# - 'uv sync' creates a .venv in /app/.venv with all dependencies
+# - By adding .venv/bin to PATH, 'python' resolves directly to the venv's Python
+# - This removes 'uv' as a runtime dependency — no need for 'uv run' at startup
+# - Result: slightly faster container startup & cleaner production image
+# - This is the official uv-recommended pattern for Docker:
+#   https://docs.astral.sh/uv/guides/integration/docker/
+ENV PATH="/app/.venv/bin:$PATH"
+
 # Copy the rest of the application code
 COPY . .
 
@@ -61,5 +70,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD curl -f http://localhost:8080/ || exit 1
 
 # Run the FastAPI application
-# - Using 'uv run' to ensure the virtual environment created by 'uv sync' is used
-CMD ["uv", "run", "python", "main.py"]
+# - 'python' now resolves to /app/.venv/bin/python (via PATH above)
+# - No need for 'uv run' wrapper — the venv is already on PATH
+# - This is faster and more production-ready than 'uv run python main.py'
+CMD ["python", "main.py"]
