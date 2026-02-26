@@ -11,6 +11,10 @@ Inspired by the engineering simplicity advocated by developers like Simon Willis
 - **Portability**: One file (`index.html`) contains the entire UI, logic, and styling.
 - **FastAPI Backend**: A high-performance Python backend serving the SFA frontend.
 
+## 💡 Inspiration
+
+**Inspired by ChatGPT's Study Mode**, but with a powerful twist. While ChatGPT study mode focuses on long-form explanations, Recall AI Agent implements **immediate feedback loops**. After each lesson, you get a **quick quiz on what you just learned**—reinforcing knowledge in real-time and preventing hallucinations by keeping quizzes contextual to your actual conversation history.
+
 ## 🧠 Core Features
 
 - **Teach-then-Test Workflow**: The AI focuses on teaching technical topics before suggesting interactive assessments.
@@ -97,7 +101,23 @@ recall-ai-agent-gcp/
 - **Orchestration**: Kubernetes (Minikube)
 - **CI/CD**: Jenkins, Argo CD
 
-## 📋 API Endpoints
+## � Workflow Diagram
+
+```mermaid
+graph TD
+    A[User Asks Question] --> B[AI Tutor Explains Concept]
+    B --> C[User Satisfaction Check]
+    C -->|More Details| B
+    C -->|Ready| D[Generate Quick Quiz]
+    D --> E[Quiz on Lesson Content]
+    E --> F[User Answers Questions]
+    F --> G[Show Results & Feedback]
+    G --> H{Learn More?}
+    H -->|New Topic| A
+    H -->|Deepen Knowledge| B
+```
+
+## �📋 API Endpoints
 
 - `POST /api/chat` - Chat with the AI tutor
 - `POST /api/quiz` - Generate contextual quiz from history
