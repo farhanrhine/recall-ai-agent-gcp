@@ -44,13 +44,15 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
-                        sh '''
+                        // Using triple double quotes (""") so Groovy resolves ${IMAGE_TAG} to actual value (e.g., v5)
+                        // Shell variables ${GIT_USER} and ${GIT_PASS} are escaped with \$ so the SHELL resolves them, not Groovy
+                        sh """
                         git config user.name "farhanrhine"
                         git config user.email "mohammadfarhanalam09@gmail.com"
                         git add manifests/deployment.yaml
                         git commit -m "Update image tag to ${IMAGE_TAG}" || echo "No changes to commit"
-                        git push https://${GIT_USER}:${GIT_PASS}@github.com/farhanrhine/recall-ai-agent-gcp.git HEAD:main
-                        '''
+                        git push https://\${GIT_USER}:\${GIT_PASS}@github.com/farhanrhine/recall-ai-agent-gcp.git HEAD:main
+                        """
                     }
                 }
             }
@@ -73,7 +75,7 @@ pipeline {
                     kubeconfig(credentialsId: 'kubeconfig', serverUrl: 'https://192.168.49.2:8443') {
                         sh '''
                         argocd login 34.45.193.5:31704 --username admin --password $(kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d) --insecure
-                        argocd app sync study
+                        argocd app sync recall-ai-agent-gcp
                         '''
                     }
                 }
