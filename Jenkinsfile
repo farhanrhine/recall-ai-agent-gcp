@@ -18,7 +18,7 @@ pipeline {
                     echo 'Building Docker image...'
                     dockerImage = docker.build("${DOCKER_HUB_REPO}:${IMAGE_TAG}")
                 }
-            } // # simple its build docker image inside jenkins.
+            } // simple its build docker image inside jenkins.
         } 
         stage('Push Image to DockerHub') { 
             steps {
@@ -27,7 +27,7 @@ pipeline {
                     docker.withRegistry('https://registry.hub.docker.com' , "${DOCKER_HUB_CREDENTIALS_ID}") {
                         dockerImage.push("${IMAGE_TAG}")
                     }
-                } // # simple its push docker image to using DOCKER_HUB_CREDENTIALS_ID which we created in Jenkins and its use to authenticate with DockerHub and push the image.
+                } // simple its push docker image to using DOCKER_HUB_CREDENTIALS_ID which we created in Jenkins and its use to authenticate with DockerHub and push the image.
             }
         }
 //         stage('Update Deployment YAML with New Tag') {
@@ -72,14 +72,15 @@ pipeline {
 //         stage('Apply Kubernetes & Sync App with ArgoCD') {
 //             steps {
 //                 script {
-//                     kubeconfig(credentialsId: 'kubeconfig', serverUrl: 'https://192.168.49.2:8443') {
+//                     kubeconfig(credentialsId: 'kubeconfig', serverUrl: 'https://192.168.49.2:8443') { 
 //                         sh '''
 //                         argocd login 34.45.193.5:31704 --username admin --password $(kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d) --insecure
 //                         argocd app sync recall-ai-agent-gcp
 //                         '''
-//                     }
+//                     } // Replace:- `credentialsId` → with your actual ID (e.g., `kubeconfig`) - `serverUrl` → with URL from `kubectl cluster-info`
 //                 }
 //             }
 //         }
     }
 }
+

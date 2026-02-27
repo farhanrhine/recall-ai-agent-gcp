@@ -4,7 +4,7 @@ venv/
 LLMOPS_3.egg-info/
 results/
 KUBECONFIG FILE/
-kubeconfig
+config
 *.key
 *.crt
 docs/
