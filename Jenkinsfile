@@ -9,7 +9,7 @@ pipeline {
         stage('Checkout Github') {
             steps {
                 echo 'Checking out code from GitHub...'
-                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'github-token', url: 'https://github.com/farhanrhine/recall-ai-agent-gcp.git']])
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'github-token', url: 'https://github.com/farhanrhine/recall-ai-agent-gcp.git']]) # change this line when you  **Generate Pipeline Script**
             }
         }        
         stage('Build Docker Image') {
