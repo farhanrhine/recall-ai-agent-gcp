@@ -3,7 +3,7 @@ pipeline {
     environment {
         DOCKER_HUB_REPO = "farhanrhine/recall-ai-agent-gcp" // replace with your DockerHub repo name
         DOCKER_HUB_CREDENTIALS_ID = "dockerhub-token"      // replace with the actual credentials ID you created in Jenkins
-        // IMAGE_TAG = "v${BUILD_NUMBER}"
+        IMAGE_TAG = "v${BUILD_NUMBER}" // using build number as tag to ensure uniqueness for each build this will save you from Argo CD has a tendency a tendency to sync the changes.
     }
     stages {
         stage('Checkout Github') {
@@ -29,58 +29,58 @@ pipeline {
                     }
                 } // simple its push docker image to using DOCKER_HUB_CREDENTIALS_ID which we created in Jenkins and its use to authenticate with DockerHub and push the image.
             }
+        } // at stage 3 uncommment everything .
+        stage('Update Deployment YAML with New Tag') {
+            steps {
+                script {
+                    sh """
+                    sed -i 's|image: farhanrhine/recall-ai-agent-gcp:.*|image: farhanrhine/recall-ai-agent-gcp:${IMAGE_TAG}|' manifests/deployment.yaml
+                    """
+                } // this is so easy way stackoverflow trick to update the image tag in deployment.yaml file with the new tag we just pushed to DockerHub, this is important because Argo CD will sync the changes and deploy the new image to Kubernetes cluster.
+            }
         }
-//         stage('Update Deployment YAML with New Tag') {
-//             steps {
-//                 script {
-//                     sh """
-//                     sed -i 's|image: farhanrhine/recall-ai-agent-gcp:.*|image: farhanrhine/recall-ai-agent-gcp:${IMAGE_TAG}|' manifests/deployment.yaml
-//                     """
-//                 }
-//             }
-//         }
 
-//         stage('Commit Updated YAML') {
-//             steps {
-//                 script {
-//                     withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
-//                         // Using triple double quotes (""") so Groovy resolves ${IMAGE_TAG} to actual value (e.g., v5)
-//                         // Shell variables ${GIT_USER} and ${GIT_PASS} are escaped with \$ so the SHELL resolves them, not Groovy
-//                         sh """
-//                         git config user.name "farhanrhine"
-//                         git config user.email "mohammadfarhanalam09@gmail.com"
-//                         git add manifests/deployment.yaml
-//                         git commit -m "Update image tag to ${IMAGE_TAG}" || echo "No changes to commit"
-//                         git push https://\${GIT_USER}:\${GIT_PASS}@github.com/farhanrhine/recall-ai-agent-gcp.git HEAD:main
-//                         """
-//                     }
-//                 }
-//             }
-//         }
-//         stage('Install Kubectl & ArgoCD CLI Setup') {
-//             steps {
-//                 sh '''
-//                 echo 'installing Kubectl & ArgoCD cli...'
-//                 curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-//                 chmod +x kubectl
-//                 mv kubectl /usr/local/bin/kubectl
-//                 curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
-//                 chmod +x /usr/local/bin/argocd
-//                 '''
-//             }
-//         }
-//         stage('Apply Kubernetes & Sync App with ArgoCD') {
-//             steps {
-//                 script {
-//                     kubeconfig(credentialsId: 'kubeconfig', serverUrl: 'https://192.168.49.2:8443') { 
-//                         sh '''
-//                         argocd login 34.45.193.5:31704 --username admin --password $(kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d) --insecure
-//                         argocd app sync recall-ai-agent-gcp
-//                         '''
-//                     } // Replace:- `credentialsId` → with your actual ID (e.g., `kubeconfig`) - `serverUrl` → with URL from `kubectl cluster-info`
-//                 }
-//             }
-//         }
+        stage('Commit Updated YAML') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
+                        // Using triple double quotes (""") so Groovy resolves ${IMAGE_TAG} to actual value (e.g., v5)
+                        // Shell variables ${GIT_USER} and ${GIT_PASS} are escaped with \$ so the SHELL resolves them, not Groovy
+                        sh """
+                        git config user.name "farhanrhine"
+                        git config user.email "mohammadfarhanalam09@gmail.com"
+                        git add manifests/deployment.yaml
+                        git commit -m "Update image tag to ${IMAGE_TAG}" || echo "No changes to commit"
+                        git push https://\${GIT_USER}:\${GIT_PASS}@github.com/farhanrhine/recall-ai-agent-gcp.git HEAD:main
+                        """
+                    }
+                }
+            }
+        }
+        stage('Install Kubectl & ArgoCD CLI Setup') {
+            steps {
+                sh '''
+                echo 'installing Kubectl & ArgoCD cli...'
+                curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+                chmod +x kubectl
+                mv kubectl /usr/local/bin/kubectl
+                curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+                chmod +x /usr/local/bin/argocd
+                '''
+            } // simple its install kubectl and argocd cli inside jenkins agent temporary . you can also do this step in dockerfile and build custom jenkins agent image with kubectl and argocd cli pre-installed.but this is simple , shortcut way to do it. 
+        }
+        stage('Apply Kubernetes & Sync App with ArgoCD') {
+            steps {
+                script {
+                    kubeconfig(credentialsId: 'kubeconfig', serverUrl: 'https://192.168.49.2:8443') { 
+                        sh '''
+                        argocd login 34.45.193.5:31704 --username admin --password $(kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d) --insecure
+                        argocd app sync recall-ai-agent-gcp
+                        '''
+                    } // Replace:- `credentialsId` → with your actual ID you created on jenkins ui (e.g., `kubeconfig`) - `serverUrl` → with URL from `kubectl cluster-info`
+                }
+            }
+        }
     }
 }
 

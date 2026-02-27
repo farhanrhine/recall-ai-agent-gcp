@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: llmops-service
+  name: recall-app-service
 spec:
   selector:
-    app: llmops-app
+    app: recall-app
   ports:
     - port: 80
       targetPort: 8080  # Container port where Recall AI Agent runs
