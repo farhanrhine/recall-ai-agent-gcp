@@ -14,9 +14,9 @@ spec:
     spec:
       containers:
       - name: llmops-app
-        image: farhanrhine/recall-ai-agent-gcp:latest
+        image: farhanrhine/recall-ai-agent-gcp:latest # replace with your DockerHub repo and keep tag will be same latest at this second stage, needed with jenkins pipeline build see more details in Jenkinsfile
         ports:
-        - containerPort: 8080
+        - containerPort: 8080 # this is the port your app listens to, make sure it matches with your app configuration, its used by jenkins pipeline to run tests and health checks
         resources:
           requests:
             cpu: "100m"

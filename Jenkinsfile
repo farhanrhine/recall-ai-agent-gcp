@@ -1,10 +1,10 @@
 pipeline {
     agent any
-//     environment {
-//         DOCKER_HUB_REPO = "farhanrhine/recall-ai-agent-gcp"
-//         DOCKER_HUB_CREDENTIALS_ID = "dockerhub-token"
-//         IMAGE_TAG = "v${BUILD_NUMBER}"
-//     }
+    environment {
+        DOCKER_HUB_REPO = "farhanrhine/recall-ai-agent-gcp" // replace with your DockerHub repo name
+        DOCKER_HUB_CREDENTIALS_ID = "dockerhub-token"      // replace with the actual credentials ID you created in Jenkins
+        // IMAGE_TAG = "v${BUILD_NUMBER}"
+    }
     stages {
         stage('Checkout Github') {
             steps {
@@ -12,24 +12,24 @@ pipeline {
                 checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'github-token', url: 'https://github.com/farhanrhine/recall-ai-agent-gcp.git']]) # change this line when you  **Generate Pipeline Script**
             }
         }        
-//         stage('Build Docker Image') {
-//             steps {
-//                 script {
-//                     echo 'Building Docker image...'
-//                     dockerImage = docker.build("${DOCKER_HUB_REPO}:${IMAGE_TAG}")
-//                 }
-//             }
-//         }
-//         stage('Push Image to DockerHub') {
-//             steps {
-//                 script {
-//                     echo 'Pushing Docker image to DockerHub...'
-//                     docker.withRegistry('https://registry.hub.docker.com' , "${DOCKER_HUB_CREDENTIALS_ID}") {
-//                         dockerImage.push("${IMAGE_TAG}")
-//                     }
-//                 }
-//             }
-//         }
+        stage('Build Docker Image') { 
+            steps {
+                script {
+                    echo 'Building Docker image...'
+                    dockerImage = docker.build("${DOCKER_HUB_REPO}:${IMAGE_TAG}")
+                }
+            } // # simple its build docker image inside jenkins.
+        } 
+        stage('Push Image to DockerHub') { 
+            steps {
+                script {
+                    echo 'Pushing Docker image to DockerHub...'
+                    docker.withRegistry('https://registry.hub.docker.com' , "${DOCKER_HUB_CREDENTIALS_ID}") {
+                        dockerImage.push("${IMAGE_TAG}")
+                    }
+                } // # simple its push docker image to using DOCKER_HUB_CREDENTIALS_ID which we created in Jenkins and its use to authenticate with DockerHub and push the image.
+            }
+        }
 //         stage('Update Deployment YAML with New Tag') {
 //             steps {
 //                 script {
