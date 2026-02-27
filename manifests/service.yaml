@@ -7,5 +7,7 @@ spec:
     app: llmops-app
   ports:
     - port: 80
-      targetPort: 8080  # port for Recall AI Agent SFA Pro
-  type: NodePort
+      targetPort: 8080  # Container port where Recall AI Agent runs
+  type: NodePort  # Change from ClusterIP to NodePort to allow external access.
+                  # In production, prefer LoadBalancer or Ingress with a domain
+                  # and SSL certificate for secure and scalable access.
