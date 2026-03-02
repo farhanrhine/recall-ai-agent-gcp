@@ -50,91 +50,91 @@ pipeline {
         } 
         // at stage 3 uncomment everything when enabling full pipeline.
 
-        // stage('Update Deployment YAML with New Tag') {
-        //     steps {
-        //         script {
-        //             sh """
-        //             sed -i "s|image: .*|image: ${DOCKER_HUB_REPO}:${IMAGE_TAG}|" manifests/deployment.yaml
-        //             """
-        //         } 
-        //         // this is easy way (stackoverflow trick) to update image tag in deployment.yaml.
-        //         // BEFORE: it was hardcoded:
-        //         // sed -i 's|image: farhanrhine/...|image: farhanrhine/...:${IMAGE_TAG}|'
-        //         // PROBLEM: if repo name changes, pipeline breaks.
-        //         // NOW: using ${DOCKER_HUB_REPO} makes it dynamic and reusable.
-        //         // This is important because Argo CD will detect change in Git and sync new image to Kubernetes.
-        //     }
-        // }
+        stage('Update Deployment YAML with New Tag') {
+            steps {
+                script {
+                    sh """
+                    sed -i "s|image: .*|image: ${DOCKER_HUB_REPO}:${IMAGE_TAG}|" manifests/deployment.yaml
+                    """
+                } 
+                // this is easy way (stackoverflow trick) to update image tag in deployment.yaml.
+                // BEFORE: it was hardcoded:
+                // sed -i 's|image: farhanrhine/...|image: farhanrhine/...:${IMAGE_TAG}|'
+                // PROBLEM: if repo name changes, pipeline breaks.
+                // NOW: using ${DOCKER_HUB_REPO} makes it dynamic and reusable.
+                // This is important because Argo CD will detect change in Git and sync new image to Kubernetes.
+            }
+        }
 
-        // stage('Commit Updated YAML') {
-        //     steps {
-        //         script {
-        //             withCredentials([usernamePassword(
-        //                 credentialsId: 'github-token', 
-        //                 usernameVariable: 'GIT_USER', 
-        //                 passwordVariable: 'GIT_PASS'
-        //             )]) {
+        stage('Commit Updated YAML') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(
+                        credentialsId: 'github-token', 
+                        usernameVariable: 'GIT_USER', 
+                        passwordVariable: 'GIT_PASS'
+                    )]) {
 
-        //                 // Using triple double quotes (""") so Groovy resolves ${IMAGE_TAG}
-        //                 // Shell variables ${GIT_USER} and ${GIT_PASS} are escaped with \$ 
-        //                 // so SHELL resolves them, not Groovy.
+                        // Using triple double quotes (""") so Groovy resolves ${IMAGE_TAG}
+                        // Shell variables ${GIT_USER} and ${GIT_PASS} are escaped with \$ 
+                        // so SHELL resolves them, not Groovy.
 
-        //                 sh """
-        //                 git config user.name "farhanrhine"
-        //                 git config user.email "mohammadfarhanalam09@gmail.com"
+                        sh """
+                        git config user.name "farhanrhine"
+                        git config user.email "mohammadfarhanalam09@gmail.com"
 
-        //                 git add manifests/deployment.yaml
-        //                 git commit -m "Update image tag to ${IMAGE_TAG}" || echo "No changes to commit"
+                        git add manifests/deployment.yaml
+                        git commit -m "Update image tag to ${IMAGE_TAG}" || echo "No changes to commit"
 
-        //                 git remote set-url origin https://\${GIT_USER}:\${GIT_PASS}@github.com/farhanrhine/recall-ai-agent-gcp.git
-        //                 git push origin HEAD:main
-        //                 """
-        //             }
-        //         }
-        //     }
-        //     // BEFORE: directly pushing using full URL in git push command.
-        //     // NOW: using git remote set-url then git push origin.
-        //     // WHY: cleaner structure and easier debugging.
-        //     // This follows GitOps pattern: Git is source of truth, not kubectl set image.
-        // }
+                        git remote set-url origin https://\${GIT_USER}:\${GIT_PASS}@github.com/farhanrhine/recall-ai-agent-gcp.git
+                        git push origin HEAD:main
+                        """
+                    }
+                }
+            }
+            // BEFORE: directly pushing using full URL in git push command.
+            // NOW: using git remote set-url then git push origin.
+            // WHY: cleaner structure and easier debugging.
+            // This follows GitOps pattern: Git is source of truth, not kubectl set image.
+        }
 
-        // stage('Install Kubectl & ArgoCD CLI Setup') {
-        //     steps {
-        //         sh '''
-        //         echo 'installing Kubectl & ArgoCD cli...'
-        //         curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-        //         chmod +x kubectl
-        //         mv kubectl /usr/local/bin/kubectl
-        //         curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
-        //         chmod +x /usr/local/bin/argocd
-        //         '''
-        //     } 
-        //     // simple its install kubectl and argocd cli inside jenkins agent temporary.
-        //     // You can also build custom Jenkins agent image with these pre-installed.
-        //     // This is shortcut way for learning purpose.
-        // }
+        stage('Install Kubectl & ArgoCD CLI Setup') {
+            steps {
+                sh '''
+                echo 'installing Kubectl & ArgoCD cli...'
+                curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+                chmod +x kubectl
+                mv kubectl /usr/local/bin/kubectl
+                curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+                chmod +x /usr/local/bin/argocd
+                '''
+            } 
+            // simple its install kubectl and argocd cli inside jenkins agent temporary.
+            // You can also build custom Jenkins agent image with these pre-installed.
+            // This is shortcut way for learning purpose.
+        }
 
-        // stage('Apply Kubernetes & Sync App with ArgoCD') {
-        //     steps {
-        //         script {
-        //             kubeconfig(credentialsId: 'kubeconfig', serverUrl: 'https://192.168.49.2:8443') { 
-        //                 sh '''
-        //                 argocd login 34.45.193.5:31704 \
-        //                 --username admin \
-        //                 --password $(kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d) \
-        //                 --insecure
+        stage('Apply Kubernetes & Sync App with ArgoCD') {
+            steps {
+                script {
+                    kubeconfig(credentialsId: 'kubeconfig', serverUrl: 'https://192.168.49.2:8443') { 
+                        sh '''
+                        argocd login 34.70.247.122:31704 \
+                        --username admin \
+                        --password $(kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d) \
+                        --insecure
 
-        //                 argocd app sync recall-ai-agent-gcp
-        //                 '''
-        //             } 
-        //             // Replace credentialsId with your actual Jenkins secret ID.
-        //             // Replace serverUrl with value from: kubectl cluster-info
-        //             // This stage completes GitOps flow:
-        //             // 1. Image built & pushed
-        //             // 2. deployment.yaml updated in Git
-        //             // 3. ArgoCD reads Git and syncs cluster
-        //         }
-        //     }
-        // }
+                        argocd app sync recall-ai-agent-gcp
+                        '''
+                    } 
+                    // Replace credentialsId with your actual Jenkins secret ID.
+                    // Replace serverUrl with value from: kubectl cluster-info
+                    // This stage completes GitOps flow:
+                    // 1. Image built & pushed
+                    // 2. deployment.yaml updated in Git
+                    // 3. ArgoCD reads Git and syncs cluster
+                }
+            }
+        }
     }
 }
