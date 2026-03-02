@@ -79,15 +79,17 @@ pipeline {
                         // Shell variables ${GIT_USER} and ${GIT_PASS} are escaped with \$ 
                         // so SHELL resolves them, not Groovy.
 
-                        sh """
+                        sh '''
                         git config user.name "farhanrhine"
                         git config user.email "mohammadfarhanalam09@gmail.com"
 
                         git add manifests/deployment.yaml
-                        git commit -m "Update image tag to ${IMAGE_TAG}" || echo "No changes to commit"
+                        git commit -m "Update image tag to ''' + IMAGE_TAG + '''" || echo "No changes to commit"
 
-                        git push "https://\${GIT_USER}:\${GIT_PASS}@github.com/farhanrhine/recall-ai-agent-gcp.git" HEAD:main
-                        """
+                        GIT_USER_CLEAN=$(echo "$GIT_USER" | tr -d '[:space:]')
+                        GIT_PASS_CLEAN=$(echo "$GIT_PASS" | tr -d '[:space:]')
+                        git push "https://${GIT_USER_CLEAN}:${GIT_PASS_CLEAN}@github.com/farhanrhine/recall-ai-agent-gcp.git" HEAD:main
+                        '''
                     }
                 }
             }
