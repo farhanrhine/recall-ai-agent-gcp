@@ -14,7 +14,8 @@ spec:
     spec:
       containers:
       - name: recall-app
-        image: farhanrhine/recall-ai-agent-gcp:v6
+        image: farhanrhine/recall-ai-agent-gcp:v5
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080 # this is the port your app listens to, make sure it matches with your app configuration, its used by jenkins pipeline to run tests and health checks
         resources:
