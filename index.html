@@ -355,7 +355,7 @@
 
     <script>
         // State Persistence Initialization
-        let messages = JSON.parse(localStorage.getItem('ai_study_history')) || [];
+        let messages = JSON.parse(localStorage.getItem('ai_study_history')) || []; // 1. Load from localStorage
 
         const chatWindow = document.getElementById('chat-window');
         const userInput = document.getElementById('user-input');
@@ -422,7 +422,7 @@
         function addMessage(role, content) {
             messages.push({ role, content });
             localStorage.setItem('ai_study_history', JSON.stringify(messages));
-            renderMessage(role, content);
+            renderMessage(role, content); // 2. Save to localStorage
         }
 
         function renderMessage(role, content) {
@@ -452,7 +452,7 @@
         function resetSession() {
             if (confirm("Clear this entire session and history?")) {
                 messages = [];
-                localStorage.removeItem('ai_study_history');
+                localStorage.removeItem('ai_study_history'); // 3. Clear persisted history
                 chatWindow.innerHTML = '';
                 quizUI.innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem; text-align: center; margin-top: 2rem;">Session cleared. Ready for a new topic!</p>';
                 startQuizBtn.style.display = 'none';

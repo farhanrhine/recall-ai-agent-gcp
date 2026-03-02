@@ -72,7 +72,7 @@ uv sync
 
 ```bash
 # Run the FastAPI server
-uv run python main.py
+uv run main.py
 ```
 
 After starting, open your browser and go to:
