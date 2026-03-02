@@ -86,8 +86,7 @@ pipeline {
                         git add manifests/deployment.yaml
                         git commit -m "Update image tag to ${IMAGE_TAG}" || echo "No changes to commit"
 
-                        git remote set-url origin https://\${GIT_USER}:\${GIT_PASS}@github.com/farhanrhine/recall-ai-agent-gcp.git
-                        git push origin HEAD:main
+                        git push "https://\${GIT_USER}:\${GIT_PASS}@github.com/farhanrhine/recall-ai-agent-gcp.git" HEAD:main
                         """
                     }
                 }
